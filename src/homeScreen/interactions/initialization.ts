@@ -2,10 +2,25 @@ import { getConnectionModelId, isLlmConnected } from "@/llm/llmUtil";
 import { initChat } from "./chat";
 import { loadEncounter, loadEncounterList } from "@/encounters/encounterUtil";
 import WrongModelDialog from "../dialogs/WrongModelDialog";
-import { getLastEncounterUrl } from "@/persistence/lastEncounter";
+import { getLastEncounterUrl, setLastEncounterUrl } from "@/persistence/lastEncounter";
 import { loadCharacterSpriteset } from "@/components/audienceView/characterSpriteUtil";
+import Encounter from "@/encounters/types/Encounter";
 
 const DEFAULT_ENCOUNTER_URL = 'encounters/troll.md';
+
+async function _loadEncounter():Promise<{encounter:Encounter, encounterUrl:string}> {
+  let encounterUrl = await getLastEncounterUrl() ?? DEFAULT_ENCOUNTER_URL;
+  let encounter:Encounter; 
+  try {
+    encounter = await loadEncounter(encounterUrl);
+  } catch (err) {
+    console.warn(`Could not load ${encounterUrl} due to "${'' + err}" error. Trying default encounter instead.`);
+    encounterUrl = DEFAULT_ENCOUNTER_URL;
+    encounter = await loadEncounter(encounterUrl);
+    setLastEncounterUrl(encounterUrl);
+  }
+  return {encounter, encounterUrl};
+}
 
 export async function init(setCharacterSpriteset:Function, setEncounter:Function, setEncounterList:Function, setLines:Function, setModalDialogName:Function):Promise<boolean> {
   if (!isLlmConnected()) return false; // This initialization requires LLM connection.
@@ -14,8 +29,7 @@ export async function init(setCharacterSpriteset:Function, setEncounter:Function
   // need to do something like have 3 potential return states, e.g., failed-try-again-after-llm-load, failed-dont-try-again, success.
 
   const characterSpriteset = await loadCharacterSpriteset('/characters/characters.md');
-  const encounterUrl = await getLastEncounterUrl() ?? DEFAULT_ENCOUNTER_URL;
-  const encounter = await loadEncounter(encounterUrl);
+  const {encounter, encounterUrl} = await _loadEncounter();
   const encounterList = await loadEncounterList(encounterUrl);
   setCharacterSpriteset(characterSpriteset);
   setEncounterList(encounterList);
