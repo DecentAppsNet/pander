@@ -6,13 +6,13 @@ import LoadScreen from '@/loadScreen/LoadScreen';
 import TopBar from '@/components/topBar/TopBar';
 import AboutDialog from "./dialogs/AboutDialog";
 import MicrophonePermissionDialog from "@/homeScreen/dialogs/MicrophonePermissionDialog";
-import { loadCharacterSpriteset } from "@/components/audienceView/characterSpriteUtil";
 import CharacterSpriteset from "@/components/audienceView/types/CharacterSpriteset";
 import AudienceView from "@/components/audienceView/AudienceView";
 import AudienceMember from "@/game/types/AudienceMember";
 import { enableSpeechAfterDialog } from "./interactions/speech";
 import ChatInputBox from "@/components/chat/ChatInputBox";
 import { isSpeechAvailable, toggleSpeech } from "@/speech/speechUtil";
+import { promptFromChatInput } from "./interactions/game";
 
 // TODO load this from a file.
 const AUDIENCE_MEMBERS:AudienceMember[] = [
@@ -30,13 +30,13 @@ function HomeScreen() {
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
   const [characterSpriteset, setCharacterSpriteset] = useState<CharacterSpriteset|null>(null);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState<boolean>(false);
+  const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   
   useEffect(() => {
     if (isLoading) return;
 
-    init(setCharacterSpriteset).then(isModelLoaded => { 
+    init(setCharacterSpriteset, setRecentPrompts).then(isModelLoaded => { 
       if (!isModelLoaded) { setIsLoading(true); return; }
-      loadCharacterSpriteset('/characters/characters.md');
     });
   }, [isLoading]);
 
@@ -47,11 +47,12 @@ function HomeScreen() {
       <TopBar onAboutClick={() => setModalDialogName(AboutDialog.name)}/>
       <div className={styles.content}>
         <AudienceView characterSpriteset={characterSpriteset} audienceMembers={AUDIENCE_MEMBERS} />
-        <ChatInputBox recentPrompts={[]} onSubmit={() => {}} onToggleSpeech={ () => {
+        <ChatInputBox recentPrompts={recentPrompts} onSubmit={promptFromChatInput} onToggleSpeech={ () => {
           if (!isSpeechAvailable()) { setModalDialogName(MicrophonePermissionDialog.name); return; }
           setIsSpeechEnabled(toggleSpeech());
         }} isSpeechEnabled={isSpeechEnabled}/>
       </div>
+
       <AboutDialog
         isOpen={modalDialogName === AboutDialog.name}
         onClose={() => setModalDialogName(null)}
