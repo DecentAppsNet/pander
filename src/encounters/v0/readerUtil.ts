@@ -1,0 +1,179 @@
+import { assert } from "decent-portal";
+
+import { parseNameValueLines, parseSections } from "../markdownUtil";
+import Encounter from "./types/Encounter";
+import Action, { CodeAction } from "./types/Action";
+import ActionType from "./types/ActionType";
+import CharacterTrigger from "./types/CharacterTrigger";
+import { parseEncounterVersion, parseEncounterListVersion } from "../versionUtil";
+import { textToCode } from "@/spielCode/codeUtil";
+import Code from "@/spielCode/types/Code";
+import MessageSet from "./types/MessageSet";
+import Memory from "./types/Memory";
+import EncounterListV0 from "./types/EncounterList";
+import AudienceMember from "./types/AudienceMember";
+
+function _stripEnclosers(text:string, enclosingText:string):string {
+  text = text.trim();
+  assert(text.startsWith(enclosingText));
+  return text.endsWith(enclosingText) && text.length > enclosingText.length
+    ? text.substring(enclosingText.length, text.length - enclosingText.length).trim()
+    : text.substring(enclosingText.length).trim();
+}
+
+function _parseCriteriaFromMessageLine(line:string):{lineWithoutCriteria:string, criteria:Code|null} {
+  const startPos = line.indexOf('`');
+  if (startPos === -1) return {lineWithoutCriteria:line, criteria:null};
+  const endPos = line.indexOf('`', startPos+1);
+  if (endPos === -1) return {lineWithoutCriteria:line, criteria:null};
+  if (line.indexOf('`', endPos+1) !== -1) throw Error('Multiple code blocks found in message line - only one allowed.');
+  const codeText = `__result=${line.substring(startPos+1, endPos)}`; // "__result=" - converts the concise expression format to a statement.
+  const lineWithoutCriteria = `${line.substring(0, startPos - 1)}${line.substring(endPos+1)}`.trim();
+  const criteria = textToCode(codeText);
+  return {lineWithoutCriteria, criteria};
+}
+
+function _parseMessageLine(line:string):{messages:MessageSet, criteria:Code|null} {
+  const {lineWithoutCriteria, criteria} = _parseCriteriaFromMessageLine(line);
+  const messages = lineWithoutCriteria.length 
+    ? lineWithoutCriteria.split('|').map(msg => msg.trim()).filter(msg => msg.length > 0)
+    : [];
+  return {messages:new MessageSet(messages), criteria};
+}
+
+function _parseMessageAction(line:string, encloser:string, actionType:ActionType):Action {
+  line = _stripEnclosers(line, encloser);
+  const {messages, criteria} = _parseMessageLine(line);
+  if (actionType === ActionType.CHARACTER_MESSAGE && messages.count === 0) { // Handling > or >'criteria`
+    return { actionType:ActionType.REPROCESS, criteria };
+  }
+  return { actionType, messages, criteria } as Action;
+}
+
+function _parseCodeAction(line:string):CodeAction {
+  line = _stripEnclosers(line, '`');
+  const code = textToCode(line);
+  return { actionType:ActionType.CODE, code };
+}
+
+function _lineToAction(line:string):Action|null {
+  if (line.startsWith('**')) return _parseMessageAction(line, '**', ActionType.INSTRUCTION_MESSAGE);
+  if (line.startsWith('_')) return _parseMessageAction(line, '_', ActionType.NARRATION_MESSAGE);
+  if (line.startsWith('>>')) return _parseMessageAction(line, '>>', ActionType.PLAYER_MESSAGE);
+  if (line.startsWith('>')) return _parseMessageAction(line, '>', ActionType.CHARACTER_MESSAGE);
+  if (line.startsWith('`')) return _parseCodeAction(line);
+  return null;
+}
+
+function _parseActions(sectionContent:string):Action[] {
+  const actions:Action[] = [];
+  const lines = sectionContent.split('\n');
+  for(let lineI = 0; lineI < lines.length; ++lineI) {
+    const line = lines[lineI];
+    if (line.startsWith('#')) break; // Can only be subsections from here on.
+    const action = _lineToAction(line);
+    if (action) actions.push(action);
+  }
+  return actions;
+}
+
+function _parseStartSection(startSection?:string):Action[] {
+  if (!startSection) return [];
+  return _parseActions(startSection);
+}
+
+function _parseTriggerSectionName(triggerSectionName:string):{criteria:string, enabledCriteria:Code|null} {
+  const {messages, criteria} = _parseMessageLine(triggerSectionName);
+  if (messages.count > 1) throw Error('Multiple messages found in trigger section name - only one allowed.');
+  return {criteria:messages.nextMessage(), enabledCriteria:criteria};
+}
+
+function _parseTriggerSection(triggerSectionName:string, triggerCode:string, triggerSection:string):CharacterTrigger {
+  const actions = _parseActions(triggerSection);
+  const { criteria, enabledCriteria } = _parseTriggerSectionName(triggerSectionName);
+  return {
+    criteria,
+    triggerCode,
+    actions,
+    isEnabled:true,
+    enabledCriteria
+  }
+}
+
+function _parseInstructionSection(instructionSection?:string):[Action[], CharacterTrigger[]] {
+  if (!instructionSection) return [[], []];
+  const actions = _parseActions(instructionSection);
+  const triggerSections = parseSections(instructionSection, 2);
+  const triggerConditions = Object.keys(triggerSections);
+  const triggers = triggerConditions.map((triggerSectionName, triggerNo) => {
+    const triggerCode = `${triggerNo}`;
+    return _parseTriggerSection(triggerSectionName, triggerCode, triggerSections[triggerSectionName])
+  });
+  return [actions, triggers];
+}
+
+function _parseMemorySectionName(memorySectionName:string):{matchPhrases:string[], enabledCriteria:Code|null} {
+  const {messages, criteria} = _parseMessageLine(memorySectionName);
+  const matchPhrases = messages.toArray();
+  return {matchPhrases, enabledCriteria:criteria};
+}
+
+function _parseMemorySection(memorySectionName:string, memorySection:string):Memory {
+  const actions = _parseActions(memorySection);
+  const { matchPhrases, enabledCriteria } = _parseMemorySectionName(memorySectionName);
+  return {
+    matchPhrases,
+    enabledCriteria,
+    actions
+  }
+}
+
+function _parseMemoriesSection(memoriesSection?:string):Memory[] {
+  if (!memoriesSection) return [];
+  const memorySections = parseSections(memoriesSection, 2);
+  const memorySectionNames = Object.keys(memorySections);
+  const memories = memorySectionNames.map(memorySectionName => _parseMemorySection(memorySectionName, memorySections[memorySectionName]));
+  return memories;
+}
+
+function _parseAudienceSection(audienceSection:string):AudienceMember[] {
+  const audienceCharacters = parseSections(audienceSection, 2);
+  const names = Object.keys(audienceCharacters);
+  
+  return names.map(characterId => {
+    const characterVars = parseNameValueLines(audienceCharacters[characterId]);
+    const likes = characterVars.likes === undefined // TODO - likes should come from characters.md instead of the encounter.
+      ? [] 
+      : characterVars.likes.split('|').map(keyword => keyword.trim()).filter(keyword => keyword !== '');
+    const happiness = characterVars.happiness === undefined ? .5 : parseFloat(characterVars.happiness);
+    const count = characterVars.count === undefined ? 1 : parseInt(characterVars.count);
+    return { characterId, likes, happiness, count };
+  });
+}
+
+export function textToEncounter(text:string):Encounter {
+  const version = parseEncounterVersion(text); // Throws if missing/invalid.
+  const sections = parseSections(text);
+
+  const generalSettings = sections.General ? parseNameValueLines(sections.General) : {}
+  const title = generalSettings.title || 'Untitled Encounter';
+  const model = generalSettings.model || 'default';
+  const audience:AudienceMember[] = sections.Audience ? _parseAudienceSection(sections.Audience) : [];
+
+  const startActions = _parseStartSection(sections.Start);
+  const [instructionActions, characterTriggers] = _parseInstructionSection(sections.Instructions);
+  const memories = _parseMemoriesSection(sections.Memories);
+
+  return { version, title, model, startActions, instructionActions, characterTriggers, memories, audience };
+}
+
+export function textToEncounterList(text:string, lastLoadedEncounterUrl:string|null):EncounterListV0 {
+  const version = parseEncounterListVersion(text); // Throws if missing/invalid.
+  const sections = parseSections(text);
+  if (!sections.Encounters) throw Error('Missing Encounters section');
+  const encounterEntries = parseNameValueLines(sections.Encounters);
+  const entries = Object.keys(encounterEntries).map(title => ({title, url:encounterEntries[title]}));
+  let lastEncounterI = lastLoadedEncounterUrl ? entries.findIndex(entry => entry.url === lastLoadedEncounterUrl) : null;
+  if (lastEncounterI === -1) lastEncounterI = null; // If the last loaded encounter isn't found, treat it as if there was no last loaded encounter.
+  return {version, entries, lastEncounterI};
+}

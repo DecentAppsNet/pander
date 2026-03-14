@@ -1,0 +1,50 @@
+.container {
+  height: 100%;
+  background-color: lightgray;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.6vh;
+  padding: 1vh;  
+}
+
+.containerDisabled {
+  overflow: hidden;
+}
+
+.characterLine {
+  width: fit-content;
+  
+  align-self: flex-start;
+  max-width: 75%;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+
+  padding-left: 1vh;
+  padding-right: 1vh;
+  border-radius: 1vh;
+  background-color: #444444;
+  color: white;
+}
+
+.playerLine {
+  width: fit-content;
+
+  align-self: flex-end;
+  max-width: 75%;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+
+  padding-left: 1vh;
+  padding-right: 1vh;
+  border-radius: 1vh;
+  background-color: #795848;
+  color: white;
+}
+
+.narrativeLine {
+  text-align: center;
+}

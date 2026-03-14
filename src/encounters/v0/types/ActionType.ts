@@ -1,0 +1,10 @@
+enum ActionType {
+  NARRATION_MESSAGE,
+  CHARACTER_MESSAGE,
+  PLAYER_MESSAGE,
+  INSTRUCTION_MESSAGE,
+  REPROCESS,
+  CODE
+}
+
+export default ActionType;
