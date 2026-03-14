@@ -42,11 +42,12 @@ export function isSpeechEnabled():boolean {
   return theIsSpeechEnabled;
 }
 
-export function toggleSpeech() {
-  if (!theRecognizer) return;
+export function toggleSpeech():boolean {
+  if (!theRecognizer) return theIsSpeechEnabled;
   if (theIsSpeechEnabled) theRecognizer.mute();
   else theRecognizer.unmute();
   theIsSpeechEnabled = !theIsSpeechEnabled;
+  return theIsSpeechEnabled;
 }
 
 export function enableSpeech() {

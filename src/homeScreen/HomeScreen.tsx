@@ -11,8 +11,8 @@ import CharacterSpriteset from "@/components/audienceView/types/CharacterSprites
 import AudienceView from "@/components/audienceView/AudienceView";
 import AudienceMember from "@/game/types/AudienceMember";
 import { enableSpeechAfterDialog } from "./interactions/speech";
-import { setHappiness } from "@/components/audienceView/audienceEventUtil";
-import ContentButton from "@/components/contentButton/ContentButton";
+import ChatInputBox from "@/components/chat/ChatInputBox";
+import { isSpeechAvailable, toggleSpeech } from "@/speech/speechUtil";
 
 // TODO load this from a file.
 const AUDIENCE_MEMBERS:AudienceMember[] = [
@@ -29,6 +29,7 @@ function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
   const [characterSpriteset, setCharacterSpriteset] = useState<CharacterSpriteset|null>(null);
+  const [isSpeechEnabled, setIsSpeechEnabled] = useState<boolean>(false);
   
   useEffect(() => {
     if (isLoading) return;
@@ -46,6 +47,10 @@ function HomeScreen() {
       <TopBar onAboutClick={() => setModalDialogName(AboutDialog.name)}/>
       <div className={styles.content}>
         <AudienceView characterSpriteset={characterSpriteset} audienceMembers={AUDIENCE_MEMBERS} />
+        <ChatInputBox recentPrompts={[]} onSubmit={() => {}} onToggleSpeech={ () => {
+          if (!isSpeechAvailable()) { setModalDialogName(MicrophonePermissionDialog.name); return; }
+          setIsSpeechEnabled(toggleSpeech());
+        }} isSpeechEnabled={isSpeechEnabled}/>
       </div>
       <AboutDialog
         isOpen={modalDialogName === AboutDialog.name}
@@ -53,8 +58,8 @@ function HomeScreen() {
       />
       <MicrophonePermissionDialog
         isOpen={modalDialogName === 'MicrophonePermissionDialog'}
-        onApprove={() => enableSpeechAfterDialog(setModalDialogName)}
-        onSkip={() => setModalDialogName(null)}
+        onApprove={() => enableSpeechAfterDialog(setModalDialogName, setIsSpeechEnabled)}
+        onCancel={() => setModalDialogName(null)}
       />
     </div>
   );
