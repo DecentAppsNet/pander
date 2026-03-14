@@ -106,3 +106,14 @@ export function createCrowdDrawState(characterSpriteset:CharacterSpriteset, audi
 export function drawCrowd(crowdDrawState:CrowdDrawState, context:CanvasRenderingContext2D) {
   crowdDrawState.characterDrawStates.forEach(characterDrawState => drawCharacter(characterDrawState, context));
 }
+
+export function updateCharacterHappiness(characterId:string, happiness:number, crowdDrawState:CrowdDrawState|null) {
+  if (!crowdDrawState) return;
+  const now = performance.now();
+  crowdDrawState.characterDrawStates.forEach(characterDrawState => {
+    if (characterDrawState.sprite.id !== characterId) return;
+    characterDrawState.happiness = happiness;
+    characterDrawState.nextMoodIconDisplayTime = now;
+    characterDrawState.nextBodyFrameChangeTime = now;
+  });
+}

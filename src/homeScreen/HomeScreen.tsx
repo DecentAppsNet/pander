@@ -11,6 +11,8 @@ import CharacterSpriteset from "@/components/audienceView/types/CharacterSprites
 import AudienceView from "@/components/audienceView/AudienceView";
 import AudienceMember from "@/game/types/AudienceMember";
 import { enableSpeechAfterDialog } from "./interactions/speech";
+import { setHappiness } from "@/components/audienceView/audienceEventUtil";
+import ContentButton from "@/components/contentButton/ContentButton";
 
 // TODO load this from a file.
 const AUDIENCE_MEMBERS:AudienceMember[] = [

@@ -211,7 +211,7 @@ export async function loadCharacterSpriteset(characterMdUrl:string):Promise<Char
   return spriteSet;
 }
 
-function _happinessToHappyI(happiness:number) {
+export function _happinessToHappyI(happiness:number) {
   assert(happiness >= 0 && happiness <= 1);
   return Math.round(happiness * (HAPPINESS_TO_FRAME_CHANGE_INTERVAL.length - 1));
 }
