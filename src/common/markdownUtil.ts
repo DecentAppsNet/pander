@@ -1,3 +1,21 @@
+/*
+There's some parsing conventions that seem to work well across multiple formats based on markdown. Think of the format layering like:
+
+  markdown format                                                        (base)
+    common conventions for retrieving settings-like data inside markdown (middle)
+      a specific format for one thing                                    (top)
+
+This module is for that *middle* layer of format specification. I like using markdown as a base format because I get some nice 
+syntax coloring in IDEs and on Github. And unlike other formats more specifically designed for storing settings, (e.g., yaml) I don't get
+an extra dependency library in the project. Markdown may not have been intended to be a format for settings/configuration - I 
+just think it's easy and nice to extend it.
+
+Some conventions this module supports/promotes:
+* Use of Markdown headings to hierarchically arrange sections.
+* Name/value pairs retrieved from bulleted lines.
+
+*/
+
 // Type for associative array
 type Sections = { [sectionName:string]:string };
 type NameValues = { [name:string]:string };

@@ -67,6 +67,10 @@ export async function getEmbedding(text: string): Promise<number[]> {
     return Array.from(output.data);
 }
 
+export function isEmbeddingLoaded():boolean {
+    return extractorPipeline !== null;
+}
+
 /**
  * Calculates the cosine similarity between two vectors.
  * Since output is normalized (L2=1), dot product = cosine similarity.

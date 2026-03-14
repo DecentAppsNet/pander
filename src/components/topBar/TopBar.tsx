@@ -4,7 +4,7 @@ import { DecentBar, defaultOnClickLink, Link } from "decent-portal";
 
 const appLinks = [
   { description: "About", url: 'ABOUT' },
-  { description: "Support", url: "https://github.com/DecentAppsNet/encounters/issues" }
+  { description: "Support", url: "https://github.com/DecentAppsNet/pander/issues" }
 ];
 
 const contributorText = 'Erik Hermansen, Peter Turner, Eduardo Worrel';

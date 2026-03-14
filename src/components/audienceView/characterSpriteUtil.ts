@@ -1,4 +1,4 @@
-import { parseNameValueLines, parseSections } from "@/encounters/markdownUtil";
+import { parseNameValueLines, parseSections } from "@/common/markdownUtil";
 import CharacterSpriteset from "./types/CharacterSpriteset";
 import { baseUrl } from "@/common/urlUtil";
 import CharacterSprite from "./types/CharacterSprite";

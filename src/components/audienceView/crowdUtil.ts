@@ -1,4 +1,4 @@
-import AudienceMember from "@/encounters/v0/types/AudienceMember";
+import AudienceMember from "@/game/types/AudienceMember";
 import CharacterSpriteset from "./types/CharacterSpriteset";
 import CrowdDrawState from "./types/CrowdDrawState";
 import { createCharacterDrawState, drawCharacter } from "./characterSpriteUtil";

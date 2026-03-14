@@ -1,30 +1,25 @@
-import EncounterSession from "@/encounters/EncounterSession";
-import StatusUpdateCallback from "@/llm/types/StatusUpdateCallback";
 import type Recognizer from "sl-web-speech/dist/speech/Recognizer";
 
 let theRecognizer:Recognizer|null = null;
-let theEncounterSession:EncounterSession|null = null;
 let theIsSpeechEnabled = false;
 let theInitSpeechPromise:Promise<boolean>|null = null;
 
 export type StringCallback = (s:string) => void;
 
 function _onPartial(message:string) {
-  if (theEncounterSession) theEncounterSession.prompt(message);
+  console.log(message);
+  // TODO - hook up to a game session.
 }
 
-export async function initSpeech(onStatusUpdate:StatusUpdateCallback):Promise<boolean> {
+export async function initSpeech():Promise<boolean> {
   if (theInitSpeechPromise) return theInitSpeechPromise;
   theInitSpeechPromise = new Promise<boolean>(async (resolve) => {
-
-    onStatusUpdate('Initializing speech recognition...', 0);
 
     const { Recognizer, setModelsBaseUrl } = await import("sl-web-speech");
 
     function _onReady() {
       if (!theRecognizer) throw Error('Unexpected');
       theRecognizer.bindCallbacks(_onPartial, () => {}, () => {}, () => {});
-      onStatusUpdate('Speech recognition initialized.', 100);
       resolve(true);
     }
 
@@ -33,7 +28,6 @@ export async function initSpeech(onStatusUpdate:StatusUpdateCallback):Promise<bo
       theRecognizer = new Recognizer(_onReady);
     } catch(e) {
       console.error('Error while initializing speech recognizer.', e);
-      onStatusUpdate('Error while initializing speech recognition.', 100);
       resolve(false);
     }
   });
@@ -55,6 +49,8 @@ export function toggleSpeech() {
   theIsSpeechEnabled = !theIsSpeechEnabled;
 }
 
-export function connectSpeechToEncounterSession(encounterSession:EncounterSession|null) {
-  theEncounterSession = encounterSession;
+export function enableSpeech() {
+  if (!theRecognizer || theIsSpeechEnabled) return;
+  theRecognizer.unmute();
+  theIsSpeechEnabled = true;
 }

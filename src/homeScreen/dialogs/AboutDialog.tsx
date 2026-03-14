@@ -1,9 +1,6 @@
 import OkayDialog from "@/components/modalDialogs/OkayDialog";
 
-const description = `This app lets you define a local-LLM-based character that you can talk with. ` +
-  `You can give it instructions that are guided by logic and state. ` +
-  `This definition of how the LLM-based character behaves is called an "Encounter". ` + 
-  `Encounters can be imported and exported as files to share with other people.`;
+const description = `This app is for testing out game ideas where the player types or speaks messages to pander to a simulated audience.`;
 
 type Props = {
   isOpen: boolean;
@@ -16,7 +13,7 @@ function AboutDialog({ isOpen, onClose }: Props) {
       description={description}
       isOpen={isOpen}
       onOkay={onClose}
-      title="About Encounters"
+      title="About Pander"
     />
   );
 }

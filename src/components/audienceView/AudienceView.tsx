@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import CharacterSpriteset from '@/components/audienceView/types/CharacterSpriteset';
 import Canvas from '../canvas/Canvas';
 import styles from './AudienceView.module.css';
-import AudienceMember from '@/encounters/v0/types/AudienceMember';
+import AudienceMember from '@/game/types/AudienceMember';
 import CrowdDrawState from './types/CrowdDrawState';
 import { createCrowdDrawState, drawCrowd } from './crowdUtil';
 import { getNextBodyFrameChangeInterval } from './characterSpriteUtil';
