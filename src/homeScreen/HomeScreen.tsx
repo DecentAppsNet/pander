@@ -14,6 +14,8 @@ import ChatInputBox from "@/components/chat/ChatInputBox";
 import { isSpeechAvailable, toggleSpeech } from "@/speech/speechUtil";
 import { promptFromChatInput, startLevel } from "./interactions/game";
 import LevelSelector from "@/components/levelSelector/LevelSelector";
+import HappinessMeter from "@/components/happinessMeter/HappinessMeter";
+import { DEFAULT_HAPPINESS } from "@/game/happinessUtil";
 
 function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,11 +25,12 @@ function HomeScreen() {
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [audienceMembers, setAudienceMembers] = useState<AudienceMember[]>([]);
   const [levelId, setLevelId] = useState<string|null>(null);
+  const [averageHappiness, setAverageHappiness] = useState<number>(DEFAULT_HAPPINESS);
   
   useEffect(() => {
     if (isLoading) return;
 
-    init(setRecentPrompts).then(initResults => { 
+    init(setRecentPrompts, setAverageHappiness).then(initResults => { 
       if (!initResults) { setIsLoading(true); return; }
       setCharacterSpriteset(initResults.characterSpriteset);
       setLevelId(initResults.levelId);
@@ -51,6 +54,9 @@ function HomeScreen() {
           if (!isSpeechAvailable()) { setModalDialogName(MicrophonePermissionDialog.name); return; }
           setIsSpeechEnabled(toggleSpeech());
         }} isSpeechEnabled={isSpeechEnabled}/>
+      </div>
+      <div className={styles.infoPanel}>
+        <HappinessMeter happiness={averageHappiness} targetHappiness={.9} />
       </div>
 
       <AboutDialog

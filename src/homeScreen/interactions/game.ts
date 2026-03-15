@@ -1,5 +1,6 @@
 import { setHappiness } from "@/components/audienceView/audienceEventUtil";
 import GameSession from "@/game/GameSession";
+import { AverageHappinessChangeCallback } from "@/game/happinessUtil";
 import { getDefaultLevelId } from "@/game/levelFileUtil";
 import { appendRecentPrompt } from "@/persistence/recentPrompts";
 import { assertNonNullable } from "decent-portal";
@@ -7,9 +8,9 @@ import { assertNonNullable } from "decent-portal";
 let theOnSetRecentPrompts:Function|null = null;
 let theGameSession:GameSession|null = null;
 
-export async function initGame(onSetRecentPrompts:Function):Promise<string> {
+export async function initGame(onSetRecentPrompts:Function, setAverageHappiness:AverageHappinessChangeCallback):Promise<string> {
   theOnSetRecentPrompts = onSetRecentPrompts;
-  theGameSession = new GameSession(setHappiness);
+  theGameSession = new GameSession(setHappiness, setAverageHappiness);
   const levelId = await getDefaultLevelId();
   return levelId;
 }

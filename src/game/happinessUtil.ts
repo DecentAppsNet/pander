@@ -1,7 +1,7 @@
 import { assertNonNullable } from "decent-portal";
 
 import AudienceMember from "./types/AudienceMember";
-import { clamp } from "@/common/mathUtil";
+import { clamp, isClose } from "@/common/mathUtil";
 import HappinessChange from "./types/HappinessChange";
 
 export const DEFAULT_HAPPINESS = .5;
@@ -12,6 +12,7 @@ const HATE_BUMP = -.2;
 
 export type SetHappinessCallback = (characterId:string, happiness:number) => void;
 export type FindHappinessChangeCallback = (playerText:string, audienceMember:AudienceMember) => Promise<number>;
+export type AverageHappinessChangeCallback = (happiness:number) => void;
 
 function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], characterId:string):AudienceMember|null {
   return audienceMembers.find(am => am.characterId === characterId) || null;
@@ -56,14 +57,27 @@ export async function findHappinessChangesForAudience(playerText:string, audienc
   return changes;
 }
 
+export function calcAverageHappiness(audienceMembers:AudienceMember[]):number {
+  let totalHappiness = 0, totalMemberCount = 0;
+  audienceMembers.forEach(audienceMember => {
+    totalMemberCount += audienceMember.count;
+    totalHappiness += (audienceMember.happiness * audienceMember.count);
+  });
+  return totalMemberCount > 0 ? totalHappiness / totalMemberCount : 0;
+}
+
 /* Updates audience members with happiness changes, publishing corresponding events for UI components to respond to. */
-export function applyHappinessChanges(happinessChanges:HappinessChange[], audienceMembers:AudienceMember[], onSetHappiness:SetHappinessCallback) {
+export function applyHappinessChanges(averageHappiness:number, happinessChanges:HappinessChange[], audienceMembers:AudienceMember[], 
+    onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback):number {
   happinessChanges.forEach(change => {
     const audienceMember = _findAudienceMemberByCharacterId(audienceMembers, change.characterId);
     assertNonNullable(audienceMember);
     const oldHappiness = audienceMember.happiness;
     audienceMember.happiness = clamp(oldHappiness + change.happinessDelta, 0, 1);
-    if (Math.abs(oldHappiness - audienceMember.happiness) < 0.00001) return;
+    if (isClose(oldHappiness, audienceMember.happiness)) return;
     onSetHappiness(audienceMember.characterId, audienceMember.happiness);
   });
+  const nextAverageHappiness = calcAverageHappiness(audienceMembers);
+  if (!isClose(averageHappiness, nextAverageHappiness)) onAverageHappinessChange(nextAverageHappiness);
+  return nextAverageHappiness;
 }
