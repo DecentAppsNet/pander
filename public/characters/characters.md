@@ -25,6 +25,10 @@
 * description=They like knowledge and conservation.
 * bodyStartCellNo=9
 * bodyCellCount=4
+* loves=study|studying|dewey|decimal
+* likes=quiet|silence|serious|find|finding|knowledge|library|libraries|book|books
+* dislikes=loud|loudness|noise
+* hates=prank|pranks|trick|tricks|whoopie
 
 # Jock
 
@@ -43,9 +47,13 @@
 # Clown
 
 * title=Clown
-* description=
+* description=Natural enemy of librarians.
 * bodyStartCellNo=21
 * bodyCellCount=4
+* loves=balloon|balloons|makeup|hats|hat|shoe|shoes|circus|paint|pie|costume|costumes|nose|whoopie
+* likes=jokes|joke|prank|pranks|trick|tricks|fun|laughter|laugh|laughing|audience|performance|performances|music|color|colors|party|parties|loud
+* dislikes=serious|quiet|read|reading|study|studying
+* hates=book|books|library|libraries
 
 # Cat Lady
 
