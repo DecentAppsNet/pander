@@ -3,6 +3,8 @@ import { applyHappinessChanges, AverageHappinessChangeCallback, calcAverageHappi
 import { loadLevel } from "./levelFileUtil";
 import AudienceMember from "./types/AudienceMember"
 import Level, { duplicateLevel } from "./types/Level";
+import WordUsageHistory from "./types/WordUsageHistory";
+import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallback } from "./wordAnalysisUtil";
 
 const _setHappinessNoOp:SetHappinessCallback = (_c:string, _h:number) => { console.warn('setHappiness() not bound in game session.'); }
 const _averageHappinessChangeNoOp:AverageHappinessChangeCallback = (_h:number) => { console.warn('onAverageHappinessChange() not bound in game session.'); } 
@@ -22,6 +24,7 @@ class GameSession {
   private _onAverageHappinessChange:AverageHappinessChangeCallback = _averageHappinessChangeNoOp;
   private _findHappinessFunctions:FindHappinessChangeCallback[] = [];
   private _averageHappiness:number = DEFAULT_HAPPINESS;
+  private _wordUsageHistory:WordUsageHistory = {};
 
   constructor(onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback) {
     this._onSetHappiness = onSetHappiness;
@@ -35,13 +38,17 @@ class GameSession {
     this._onFindHappinessChange = nameToHappinessFunction(level.happinessFunctionName, this._findHappinessFunctions);
     const prevAverageHappiness = this._averageHappiness;
     this._averageHappiness = calcAverageHappiness(this._audienceMembers);
+    this._wordUsageHistory = {};
     if (!isClose(prevAverageHappiness, this._averageHappiness)) this._onAverageHappinessChange(this._averageHappiness);
     return duplicateLevel(level);
   }
 
   // Receive a prompt of player text, make updates to game state, and publish corresponding events that may be received by UI components.
   async prompt(playerText:string) {
-    const happinessChanges = await findHappinessChangesForAudience(playerText, this._audienceMembers, this._onFindHappinessChange);
+    const onWordCooldownFactor:WordCooldownFactorCallback = (word:string) => findWordCooldownFactor(word, this._wordUsageHistory);
+    const happinessChanges = await findHappinessChangesForAudience(playerText, this._audienceMembers, 
+        this._onFindHappinessChange, onWordCooldownFactor);
+    updateWordUsageHistory(playerText, this._wordUsageHistory);
     this._averageHappiness = applyHappinessChanges(this._averageHappiness, happinessChanges, this._audienceMembers, 
         this._onSetHappiness, this._onAverageHappinessChange);
   }

@@ -14,7 +14,7 @@ export async function initSpeech(onPromptFromSpeech:StringCallback):Promise<bool
 
     function _onReady() {
       if (!theRecognizer) throw Error('Unexpected');
-      theRecognizer.bindCallbacks(_noOpStringCallback, () => {}, () => {}, onPromptFromSpeech);
+      theRecognizer.bindCallbacks(onPromptFromSpeech, () => {}, () => {}, _noOpStringCallback);
       resolve(true);
     }
 

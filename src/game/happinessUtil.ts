@@ -3,6 +3,7 @@ import { assertNonNullable } from "decent-portal";
 import AudienceMember from "./types/AudienceMember";
 import { clamp, isClose } from "@/common/mathUtil";
 import HappinessChange from "./types/HappinessChange";
+import { WordCooldownFactorCallback } from "./wordAnalysisUtil";
 
 export const DEFAULT_HAPPINESS = .5;
 const LOVE_BUMP = .2;
@@ -11,7 +12,7 @@ const DISLIKE_BUMP = -.1;
 const HATE_BUMP = -.2;
 
 export type SetHappinessCallback = (characterId:string, happiness:number) => void;
-export type FindHappinessChangeCallback = (playerText:string, audienceMember:AudienceMember) => Promise<number>;
+export type FindHappinessChangeCallback = (playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback) => Promise<number>;
 export type AverageHappinessChangeCallback = (happiness:number) => void;
 
 function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], characterId:string):AudienceMember|null {
@@ -19,20 +20,23 @@ function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], char
 }
 
 function _playerTextToWords(playerText:string):string[] {
-  return playerText.split(' ').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
+  const wordSet:Set<string> = new Set<string>();
+  const words = playerText.split(' ').map(t => t.trim().toLowerCase());
+  words.forEach(word => wordSet.add(word)); // Assign to set to ensure uniqueness.
+  return Array.from(wordSet);
 }
 
 /* Default function for determining happiness change for one audience member in response to player text. 
    Returns a number representing the amount by which happiness should change. */
-export async function findHappinessChangeDefault(playerText:string, audienceMember:AudienceMember):Promise<number> {
+export async function findHappinessChangeDefault(playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback):Promise<number> {
   const words = _playerTextToWords(playerText);
   if (!words.length) return 0;
   let delta = 0;
   words.forEach(word => {
-    if (audienceMember.loves.includes(word)) delta += LOVE_BUMP;
-    else if (audienceMember.likes.includes(word)) delta += LIKE_BUMP;
-    else if (audienceMember.dislikes.includes(word)) delta += DISLIKE_BUMP;
-    else if (audienceMember.hates.includes(word)) delta += HATE_BUMP;
+    if (audienceMember.loves.includes(word)) delta += (LOVE_BUMP * onWordCooldownFactor(word));
+    else if (audienceMember.likes.includes(word)) delta += (LIKE_BUMP * onWordCooldownFactor(word));
+    else if (audienceMember.dislikes.includes(word)) delta += (DISLIKE_BUMP * onWordCooldownFactor(word));
+    else if (audienceMember.hates.includes(word)) delta += (HATE_BUMP * onWordCooldownFactor(word));
   });
   return delta;
 }
@@ -48,10 +52,10 @@ export function nameToHappinessFunction(happinessFunctionName:string|null, happi
 }
 
 /* Finds all happiness changes for audience members in response to player text. */
-export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onFindHappinessChange:FindHappinessChangeCallback):Promise<HappinessChange[]> {
+export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onFindHappinessChange:FindHappinessChangeCallback, onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
   const changes:HappinessChange[] = [];
   audienceMembers.forEach(async (audienceMember) => {
-    const happinessDelta = await onFindHappinessChange(playerText, audienceMember);
+    const happinessDelta = await onFindHappinessChange(playerText, audienceMember, onWordCooldownFactor);
     if (happinessDelta) changes.push({characterId:audienceMember.characterId, happinessDelta});
   });
   return changes;

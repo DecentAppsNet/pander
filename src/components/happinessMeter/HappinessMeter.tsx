@@ -21,6 +21,7 @@ function HappinessMeter({ happiness, targetHappiness }:Props) {
 
   return (
     <div className={styles.container} role="img">
+      <p>Happiness</p>
       <div className={styles.track}>
         <div className={styles.bar} style={{ height: `${heightPercent}%`, backgroundColor: cssColor }}/>
         <div className={styles.target} style={{ bottom: `${target * 100}%` }} aria-hidden />
