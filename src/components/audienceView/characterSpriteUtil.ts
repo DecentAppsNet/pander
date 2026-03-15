@@ -1,13 +1,14 @@
-import { parseNameValueLines, parseSections } from "@/common/markdownUtil";
+import { assert } from "decent-portal";
+
 import CharacterSpriteset from "./types/CharacterSpriteset";
 import { baseUrl } from "@/common/urlUtil";
 import CharacterSprite from "./types/CharacterSprite";
 import Rect, { UNSPECIFIED_RECT } from "../../drawing/types/Rect";
 import { createImageBitmapFromImageData, createImageDataFromImageBitmap } from "../../drawing/drawUtil";
 import CharacterDrawState from "./types/CharacterDrawState";
-import { assert } from "decent-portal";
+import { loadCharacterDrawSettings } from "@/game/characterFileUtil";
 
-// Marker pixel RGB (CSS shorthand #0f0 => RGB(0,255,0))
+// Marker pixel RGB for detecting marker pixels in spritemap image that define face area.
 const MARKER_R = 0;
 const MARKER_G = 255;
 const MARKER_B = 0;
@@ -27,28 +28,6 @@ const FACE_SOURCE_RECTS:Rect[] = [
   {x:0, y:256-(CY_FACE*3), w:CX_FACE, h:CY_FACE},
   {x:0, y:0, w:CX_FACE, h:CY_FACE}, // Happy
 ];
-
-function _parseGeneralSection(generalSectionText?:string):{spriteMapUrl:string, bodyWidth:number, bodyHeight:number } {
-  if (!generalSectionText) throw Error('No "General" section found in character settings file.');
-  const nameValuePairs = parseNameValueLines(generalSectionText);
-  const spriteMapUrl = nameValuePairs.spriteMapUrl;
-  const bodyWidth = parseInt(nameValuePairs.bodyWidth);
-  const bodyHeight = parseInt(nameValuePairs.bodyHeight);
-  if (!spriteMapUrl) throw Error('No "spriteMapUrl" found in "General" section of character settings file.');
-  if (!bodyWidth) throw Error('No "bodyWidth" found in "General" section of character settings file.');
-  if (!bodyHeight) throw Error('No "bodyHeight" found in "General" section of character settings file.');
-  return { spriteMapUrl, bodyWidth, bodyHeight };
-}
-
-function _parseCharacterSection(characterId:string, characterSectionText?:string):{bodyStartCellNo:number, bodyCellCount:number} {
-  if (!characterSectionText) throw Error(`Character section text is undefined for character "${characterId}".`);
-  const nameValuePairs = parseNameValueLines(characterSectionText);
-  const bodyStartCellNo = parseInt(nameValuePairs.bodyStartCellNo);
-  const bodyCellCount = parseInt(nameValuePairs.bodyCellCount);
-  if (isNaN(bodyStartCellNo)) throw Error(`No "bodyStartCellNo" found in "${characterId}" section of character settings file.`);
-  if (isNaN(bodyCellCount)) throw Error(`No "bodyCellCount" found in "${characterId}" section of character settings file.`);
-  return { bodyStartCellNo, bodyCellCount };
-}
 
 function _calcCellRect(cellNo:number, colCount:number, bodyWidth:number, bodyHeight:number):Rect {
   const y = Math.floor(cellNo / colCount) * bodyHeight;
@@ -185,11 +164,10 @@ async function _replaceMarkerPixels(spriteMap:ImageBitmap, sprites:{[id:string]:
   return createImageBitmapFromImageData(spriteMapData);
 }
 
-export async function loadCharacterSpriteset(characterMdUrl:string):Promise<CharacterSpriteset> {
-  const response = await fetch(characterMdUrl);
-  const text = await response.text();
-  const sections = parseSections(text);
-  const { spriteMapUrl, bodyWidth, bodyHeight } = _parseGeneralSection(sections.General);
+export async function loadCharacterSpriteset():Promise<CharacterSpriteset> {
+  const drawSettings = await loadCharacterDrawSettings();
+
+  const { bodyWidth, bodyHeight, spriteMapUrl } = drawSettings;
 
   const spriteMapResponse = await fetch(baseUrl(spriteMapUrl));
   const blob = await spriteMapResponse.blob();
@@ -198,10 +176,10 @@ export async function loadCharacterSpriteset(characterMdUrl:string):Promise<Char
   if (spriteMap.width % bodyWidth !== 0) throw Error(`Characters image is not evenly divisible by bodyWidth of ${bodyWidth}`);
   if (spriteMap.height % bodyHeight !== 0) throw Error(`Characters image is not evenly divisible by bodyHeight of ${bodyHeight}`);
 
-  const characterIds = Object.keys(sections).filter(sectionName => sectionName !== 'General');
+  const characterIds = Object.keys(drawSettings.characters);
   for(let i = 0; i < characterIds.length; ++i) {
     const characterId = characterIds[i];
-    const {bodyStartCellNo, bodyCellCount} = _parseCharacterSection(characterId, sections[characterIds[i]]);
+    const {startCellNo:bodyStartCellNo, cellCount:bodyCellCount} = drawSettings.characters[characterId];
     const characterSprite = _createCharacterSprite(characterId, bodyStartCellNo, bodyCellCount, bodyWidth, bodyHeight, spriteMap);
     spriteSet.sprites[characterId] = characterSprite;
   }

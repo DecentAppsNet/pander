@@ -14,7 +14,7 @@ export async function init(setRecentPrompts:Function):Promise<InitResults|null> 
 
   // It's going to double-load in dev environment, and that's harmless. If you decide to add a flag check, you also
   // need to do something like have 3 potential return states, e.g., failed-try-again-after-llm-load, failed-dont-try-again, success.
-  const characterSpriteset = await loadCharacterSpriteset('/characters/characters.md');
+  const characterSpriteset = await loadCharacterSpriteset(); // One spriteset containing all characters, regardless of current level.
   const recentPrompts = await getRecentPrompts();
   const levelId = await initGame(setRecentPrompts);
   setRecentPrompts(recentPrompts);
