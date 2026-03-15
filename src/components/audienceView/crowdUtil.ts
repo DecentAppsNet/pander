@@ -49,19 +49,18 @@ function _calcColumnRowCount(seatingRequestCount:number, drawAreaWidth:number, d
 
 function _assignSeats(seatingRequests:SeatingRequest[], columnCount:number, rowCount:number, drawAreaWidth:number, drawAreaHeight:number, bodyWidth:number, bodyHeight:number):CharacterDrawState[] {
   const drawStates:CharacterDrawState[] = [];
-  const crowdTopMarginHeight = drawAreaHeight * .3;
-  const crowdBottomMarginHeight = drawAreaHeight * .05;
-  const crowdSideMarginWidth = drawAreaWidth * .1;
-  const seatWidth = (drawAreaWidth - 2 * crowdSideMarginWidth) / columnCount;
-  const seatHeight = (drawAreaHeight - crowdTopMarginHeight - crowdBottomMarginHeight - crowdBottomMarginHeight) / rowCount;
+  rowCount+=2; // Add empty rows at the back to leave room for sprites to extend into this area.
+  const seatWidth = drawAreaWidth / columnCount;
+  const seatHeight = drawAreaHeight / rowCount;
   const oddRowStaggerWidth = seatWidth * 0.25, evenRowStaggerWidth = -oddRowStaggerWidth;
   const h = Math.round(seatHeight * 3); // allow characters to be taller than their seat height for better visuals.
   const w = Math.round(bodyWidth * h / bodyHeight); // keep aspect ratio of body intact.
-  let seatY = seatHeight + crowdTopMarginHeight;
+  let seatY = seatHeight;
+  
   let emptyBackRowSeatSkipCount = (columnCount * rowCount) - seatingRequests.length;
   for(let rowI = 0; rowI < rowCount; ++rowI) {
     const staggerWidth = (rowI % 2 === 0) ? evenRowStaggerWidth : oddRowStaggerWidth;
-    let seatX = crowdSideMarginWidth + staggerWidth;
+    let seatX = staggerWidth;
     for(let colI = 0; colI < columnCount; ++colI) {
       if (emptyBackRowSeatSkipCount > 0) {
         --emptyBackRowSeatSkipCount;
