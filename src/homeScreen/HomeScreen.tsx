@@ -12,18 +12,8 @@ import AudienceMember from "@/game/types/AudienceMember";
 import { enableSpeechAfterDialog } from "./interactions/speech";
 import ChatInputBox from "@/components/chat/ChatInputBox";
 import { isSpeechAvailable, toggleSpeech } from "@/speech/speechUtil";
-import { promptFromChatInput } from "./interactions/game";
-
-// TODO load this from a file.
-const AUDIENCE_MEMBERS:AudienceMember[] = [
-  {characterId:'Jock', count:10, happiness:0.5, likes:[]},
-  {characterId:'Librarian', count:5, happiness:0.8, likes:[]},
-  {characterId:'Cat Lady', count:5, happiness:0.4, likes:[]},
-  {characterId:'Barber', count:10, happiness:0.5, likes:[]},
-  {characterId:'Plumber', count:5, happiness:0.1, likes:[]},
-  {characterId:'Clown', count:15, happiness:0.9, likes:[]},
-  {characterId:'Ice Skater', count:5, happiness:0.9, likes:[]},
-]
+import { promptFromChatInput, startLevel } from "./interactions/game";
+import LevelSelector from "@/components/levelSelector/LevelSelector";
 
 function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -31,14 +21,23 @@ function HomeScreen() {
   const [characterSpriteset, setCharacterSpriteset] = useState<CharacterSpriteset|null>(null);
   const [isSpeechEnabled, setIsSpeechEnabled] = useState<boolean>(false);
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
+  const [audienceMembers, setAudienceMembers] = useState<AudienceMember[]>([]);
+  const [levelId, setLevelId] = useState<string|null>(null);
   
   useEffect(() => {
     if (isLoading) return;
 
-    init(setCharacterSpriteset, setRecentPrompts).then(isModelLoaded => { 
-      if (!isModelLoaded) { setIsLoading(true); return; }
+    init(setRecentPrompts).then(initResults => { 
+      if (!initResults) { setIsLoading(true); return; }
+      setCharacterSpriteset(initResults.characterSpriteset);
+      setLevelId(initResults.levelId);
     });
   }, [isLoading]);
+
+  useEffect(() => {
+    if (levelId === null) return;
+    startLevel(levelId, setAudienceMembers);
+  }, [levelId]);
 
   if (isLoading) return <LoadScreen onComplete={() => setIsLoading(false)} />;
 
@@ -46,7 +45,8 @@ function HomeScreen() {
     <div className={styles.container}>
       <TopBar onAboutClick={() => setModalDialogName(AboutDialog.name)}/>
       <div className={styles.content}>
-        <AudienceView characterSpriteset={characterSpriteset} audienceMembers={AUDIENCE_MEMBERS} />
+        <LevelSelector selectedLevelId={levelId} onSelect={setLevelId} />
+        <AudienceView characterSpriteset={characterSpriteset} audienceMembers={audienceMembers} />
         <ChatInputBox recentPrompts={recentPrompts} onSubmit={promptFromChatInput} onToggleSpeech={ () => {
           if (!isSpeechAvailable()) { setModalDialogName(MicrophonePermissionDialog.name); return; }
           setIsSpeechEnabled(toggleSpeech());

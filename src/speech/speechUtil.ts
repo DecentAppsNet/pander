@@ -1,25 +1,20 @@
-import type Recognizer from "sl-web-speech/dist/speech/Recognizer";
+import { Recognizer, setModelsBaseUrl } from 'sl-web-speech';
+
+export type StringCallback = (s:string) => void;
+
+function _noOpStringCallback(_ignored:string) {};
 
 let theRecognizer:Recognizer|null = null;
 let theIsSpeechEnabled = false;
 let theInitSpeechPromise:Promise<boolean>|null = null;
 
-export type StringCallback = (s:string) => void;
-
-function _onPartial(message:string) {
-  console.log(message);
-  // TODO - hook up to a game session.
-}
-
-export async function initSpeech():Promise<boolean> {
+export async function initSpeech(onPromptFromSpeech:StringCallback):Promise<boolean> {
   if (theInitSpeechPromise) return theInitSpeechPromise;
   theInitSpeechPromise = new Promise<boolean>(async (resolve) => {
 
-    const { Recognizer, setModelsBaseUrl } = await import("sl-web-speech");
-
     function _onReady() {
       if (!theRecognizer) throw Error('Unexpected');
-      theRecognizer.bindCallbacks(_onPartial, () => {}, () => {}, () => {});
+      theRecognizer.bindCallbacks(_noOpStringCallback, () => {}, () => {}, onPromptFromSpeech);
       resolve(true);
     }
 
