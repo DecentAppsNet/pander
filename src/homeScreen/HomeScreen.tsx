@@ -56,7 +56,7 @@ function HomeScreen() {
         }} isSpeechEnabled={isSpeechEnabled}/>
       </div>
       <div className={styles.infoPanel}>
-        <HappinessMeter happiness={averageHappiness} targetHappiness={.9} />
+        <HappinessMeter happiness={averageHappiness} />
       </div>
 
       <AboutDialog
