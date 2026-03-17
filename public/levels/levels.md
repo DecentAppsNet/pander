@@ -36,6 +36,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Barber=5
 * Ice Skater=3
 * Mogger=4
+* Artist=3
 
 # Theater
 
@@ -47,6 +48,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Barber=10
 * Ice Skater=7
 * Mogger=8
+* Artist=6
 
 # Stadium Rally
 
@@ -58,3 +60,4 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Barber=50
 * Ice Skater=30
 * Mogger=40
+* Artist=30

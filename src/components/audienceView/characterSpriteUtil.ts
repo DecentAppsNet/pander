@@ -8,6 +8,8 @@ import { createImageBitmapFromImageData, createImageDataFromImageBitmap } from "
 import CharacterDrawState from "./types/CharacterDrawState";
 import { loadCharacterDrawSettings } from "@/game/characterFileUtil";
 
+const UNSPECIFIED_TIME = -1;
+
 // Marker pixel RGB for detecting marker pixels in spritemap image that define face area.
 const MARKER_R = 0;
 const MARKER_G = 255;
@@ -218,7 +220,8 @@ export function createCharacterDrawState(spriteset:CharacterSpriteset, character
     happiness,
     destRect,
     nextBodyFrameChangeTime:now + getNextBodyFrameChangeInterval(happiness) + staggerAnimationTime,
-    nextMoodIconDisplayTime:now + getNextMoodIconDisplayInterval(happiness) + staggerAnimationTime
+    nextMoodIconDisplayTime:now + getNextMoodIconDisplayInterval(happiness) + staggerAnimationTime,
+    nextFlashTime:UNSPECIFIED_TIME
   }
 }
 
@@ -261,10 +264,13 @@ function _drawMoodIcon(spriteMap:ImageBitmap, faceDestRect:Rect, moodCompletion:
       destRect.x, destRect.y, destRect.w, destRect.h);
 }
 
+const FLASH_DURATION = 1000;
 const MOOD_ICON_DISPLAY_DURATION = 1000;
 export function drawCharacter(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
   const bodySourceRect = drawState.sprite.bodyRects[drawState.bodyFrameNo];
   const bodyDestRect = drawState.destRect;
+  // context.save();
+  // context.filter = `brightness(${1 + 1 * 10}) saturate(${1 - 1})`;
   context.drawImage(drawState.spriteMap, bodySourceRect.x, bodySourceRect.y, bodySourceRect.w, bodySourceRect.h,
     bodyDestRect.x, bodyDestRect.y, bodyDestRect.w, bodyDestRect.h);
   const faceNo = _scaleToRange(drawState.happiness, 0, FACE_COUNT-1);
@@ -278,11 +284,17 @@ export function drawCharacter(drawState:CharacterDrawState, context:CanvasRender
   const faceSourceRect = FACE_SOURCE_RECTS[faceNo];
   context.drawImage(drawState.spriteMap, faceSourceRect.x, faceSourceRect.y, faceSourceRect.w, faceSourceRect.h, 
     faceDestRect.x, faceDestRect.y, faceDestRect.w, faceDestRect.h);
+  // context.restore();
   const now = performance.now();
   if (now > drawState.nextMoodIconDisplayTime + MOOD_ICON_DISPLAY_DURATION) {
     drawState.nextMoodIconDisplayTime = now + getNextMoodIconDisplayInterval(drawState.happiness);
   } else if (now > drawState.nextMoodIconDisplayTime) {
     const moodCompletion = (now - drawState.nextMoodIconDisplayTime) / MOOD_ICON_DISPLAY_DURATION;
     _drawMoodIcon(drawState.spriteMap, faceDestRect, moodCompletion, drawState.happiness, destHorizontalScale, destVerticalScale, context);
+  }
+  if (now > drawState.nextFlashTime + FLASH_DURATION) { // NEXT need to refactor this big function a bit.
+    drawState.nextFlashTime = UNSPECIFIED_TIME;
+  } else if (now > drawState.nextFlashTime) {
+    //hmm
   }
 }

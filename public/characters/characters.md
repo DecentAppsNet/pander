@@ -68,3 +68,10 @@
 * description=Devoted to looksmaxing. Steroids, weird diets, and hammers to the face - whatever it takes!
 * bodyStartCellNo=29
 * bodyCellCount=4
+
+# Artist
+
+* title=Artist
+* description=
+* bodyStartCellNo=33
+* bodyCellCount=4
