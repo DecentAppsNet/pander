@@ -114,5 +114,6 @@ export function updateCharacterHappiness(characterId:string, happiness:number, c
     characterDrawState.happiness = happiness;
     characterDrawState.nextMoodIconDisplayTime = now;
     characterDrawState.nextBodyFrameChangeTime = now;
+    characterDrawState.nextFlashTime = now;
   });
 }

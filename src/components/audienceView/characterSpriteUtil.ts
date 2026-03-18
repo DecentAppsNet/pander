@@ -7,8 +7,11 @@ import Rect, { UNSPECIFIED_RECT } from "../../drawing/types/Rect";
 import { createImageBitmapFromImageData, createImageDataFromImageBitmap } from "../../drawing/drawUtil";
 import CharacterDrawState from "./types/CharacterDrawState";
 import { loadCharacterDrawSettings } from "@/game/characterFileUtil";
+import { clamp } from "@/common/mathUtil";
 
 const UNSPECIFIED_TIME = -1;
+const FLASH_DURATION = 1000;
+const MOOD_ICON_DISPLAY_DURATION = 1000;
 
 // Marker pixel RGB for detecting marker pixels in spritemap image that define face area.
 const MARKER_R = 0;
@@ -264,37 +267,74 @@ function _drawMoodIcon(spriteMap:ImageBitmap, faceDestRect:Rect, moodCompletion:
       destRect.x, destRect.y, destRect.w, destRect.h);
 }
 
-const FLASH_DURATION = 1000;
-const MOOD_ICON_DISPLAY_DURATION = 1000;
-export function drawCharacter(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
+function _drawBody(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
   const bodySourceRect = drawState.sprite.bodyRects[drawState.bodyFrameNo];
   const bodyDestRect = drawState.destRect;
-  // context.save();
-  // context.filter = `brightness(${1 + 1 * 10}) saturate(${1 - 1})`;
   context.drawImage(drawState.spriteMap, bodySourceRect.x, bodySourceRect.y, bodySourceRect.w, bodySourceRect.h,
     bodyDestRect.x, bodyDestRect.y, bodyDestRect.w, bodyDestRect.h);
-  const faceNo = _scaleToRange(drawState.happiness, 0, FACE_COUNT-1);
-  const faceOffsetRect = drawState.sprite.faceRects[drawState.bodyFrameNo]; // Face offset from topleft of body rect.
-  // The width/height of the body in the destination may not match width/height in source - scale face offset accordingly.
-  const destHorizontalScale = bodyDestRect.w / bodySourceRect.w;
-  const destVerticalScale = bodyDestRect.h / bodySourceRect.h;
+}
+
+function _getFaceDestRect(drawState:CharacterDrawState):Rect {
+  const bodyDestRect = drawState.destRect;
+  const faceOffsetRect = drawState.sprite.faceRects[drawState.bodyFrameNo];
+  const destHorizontalScale = bodyDestRect.w / drawState.sprite.bodyRects[drawState.bodyFrameNo].w;
+  const destVerticalScale = bodyDestRect.h / drawState.sprite.bodyRects[drawState.bodyFrameNo].h;
   const faceDestRect = _calcScaledRect(faceOffsetRect, destHorizontalScale, destVerticalScale);
   faceDestRect.x += bodyDestRect.x;
   faceDestRect.y += bodyDestRect.y;
+  return faceDestRect;
+}
+
+function _drawFace(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
+  const faceNo = _scaleToRange(drawState.happiness, 0, FACE_COUNT-1);
+  const faceDestRect = _getFaceDestRect(drawState);
   const faceSourceRect = FACE_SOURCE_RECTS[faceNo];
   context.drawImage(drawState.spriteMap, faceSourceRect.x, faceSourceRect.y, faceSourceRect.w, faceSourceRect.h, 
     faceDestRect.x, faceDestRect.y, faceDestRect.w, faceDestRect.h);
-  // context.restore();
-  const now = performance.now();
-  if (now > drawState.nextMoodIconDisplayTime + MOOD_ICON_DISPLAY_DURATION) {
-    drawState.nextMoodIconDisplayTime = now + getNextMoodIconDisplayInterval(drawState.happiness);
-  } else if (now > drawState.nextMoodIconDisplayTime) {
+}
+
+function _drawMoodIconIfActive(drawState:CharacterDrawState, context:CanvasRenderingContext2D, now:number) {
+  assert(now <= drawState.nextMoodIconDisplayTime + MOOD_ICON_DISPLAY_DURATION);
+  if (now > drawState.nextMoodIconDisplayTime) {
     const moodCompletion = (now - drawState.nextMoodIconDisplayTime) / MOOD_ICON_DISPLAY_DURATION;
+    const faceDestRect = _getFaceDestRect(drawState);
+    const destHorizontalScale = drawState.destRect.w / drawState.sprite.bodyRects[drawState.bodyFrameNo].w;
+    const destVerticalScale = drawState.destRect.h / drawState.sprite.bodyRects[drawState.bodyFrameNo].h;
     _drawMoodIcon(drawState.spriteMap, faceDestRect, moodCompletion, drawState.happiness, destHorizontalScale, destVerticalScale, context);
   }
-  if (now > drawState.nextFlashTime + FLASH_DURATION) { // NEXT need to refactor this big function a bit.
+}
+
+function _updateCharacterAnimationTimings(drawState:CharacterDrawState, now:number) {
+  if (drawState.nextFlashTime !== UNSPECIFIED_TIME && now > drawState.nextFlashTime + FLASH_DURATION) {
     drawState.nextFlashTime = UNSPECIFIED_TIME;
-  } else if (now > drawState.nextFlashTime) {
-    //hmm
   }
+  if (now > drawState.nextMoodIconDisplayTime + MOOD_ICON_DISPLAY_DURATION) {
+    drawState.nextMoodIconDisplayTime = now + getNextMoodIconDisplayInterval(drawState.happiness);
+  }
+}
+
+function _endFlashState(context:CanvasRenderingContext2D) {
+  context.restore();
+}
+
+function _startFlashStateIfActive(drawState:CharacterDrawState, context:CanvasRenderingContext2D, now:number):boolean {
+  assert(drawState.nextFlashTime === UNSPECIFIED_TIME || now <= drawState.nextFlashTime + FLASH_DURATION);
+  if (drawState.nextFlashTime === UNSPECIFIED_TIME || now < drawState.nextFlashTime) return false;
+
+  const progress = clamp((now - drawState.nextFlashTime) / FLASH_DURATION, 0, 1);
+  const flashAmount = (1 - Math.cos(2 * Math.PI * progress)) / 2;
+  context.save();
+  context.filter = `brightness(${1 + flashAmount * 10}) saturate(${1 - flashAmount})`;
+
+  return true;
+}
+
+export function drawCharacter(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
+  const now = performance.now();
+  _updateCharacterAnimationTimings(drawState, now);
+  const isFlashing = _startFlashStateIfActive(drawState, context, now);
+  _drawBody(drawState, context);
+  _drawFace(drawState, context);
+  if (isFlashing) _endFlashState(context);
+  _drawMoodIconIfActive(drawState, context, now);
 }
