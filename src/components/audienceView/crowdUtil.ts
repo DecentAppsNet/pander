@@ -5,6 +5,7 @@ import { createCharacterDrawState, drawCharacter } from "./characterSpriteUtil";
 import CharacterDrawState from "./types/CharacterDrawState";
 import { assert } from "decent-portal";
 import { UNSPECIFIED_RECT } from "@/drawing/types/Rect";
+import { isClose } from "@/common/mathUtil";
 
 type SeatingRequest = CharacterDrawState|null;
 
@@ -110,7 +111,8 @@ export function updateCharacterHappiness(characterId:string, happiness:number, c
   if (!crowdDrawState) return;
   const now = performance.now();
   crowdDrawState.characterDrawStates.forEach(characterDrawState => {
-    if (characterDrawState.sprite.id !== characterId) return;
+    if (characterDrawState.sprite.id !== characterId || isClose(happiness, characterDrawState.happiness)) return;
+    characterDrawState.isNextFlashPositive = happiness >= characterDrawState.happiness;
     characterDrawState.happiness = happiness;
     characterDrawState.nextMoodIconDisplayTime = now;
     characterDrawState.nextBodyFrameChangeTime = now;

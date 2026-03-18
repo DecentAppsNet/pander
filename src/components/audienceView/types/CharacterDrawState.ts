@@ -9,7 +9,8 @@ type CharacterDrawState = {
   destRect:Rect,
   nextBodyFrameChangeTime:number,
   nextMoodIconDisplayTime:number
-  nextFlashTime:number
+  nextFlashTime:number,
+  isNextFlashPositive:boolean
 }
 
 export default CharacterDrawState;

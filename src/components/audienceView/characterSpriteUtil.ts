@@ -329,12 +329,32 @@ function _startFlashStateIfActive(drawState:CharacterDrawState, context:CanvasRe
   return true;
 }
 
+function _drawBodyText(drawState:CharacterDrawState, context:CanvasRenderingContext2D, textCharacter:string) {
+  const dest = drawState.destRect;
+  context.save();
+  const fontSize = Math.max(8, Math.floor(Math.min(dest.w, dest.h) * 0.2));
+  context.font = `${fontSize}px sans-serif`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.lineWidth = Math.max(1, Math.floor(fontSize * 0.08));
+  context.strokeStyle = 'rgba(0,0,0,0.7)';
+  context.fillStyle = 'black';
+  const cx = dest.x + dest.w / 2;
+  const cy = dest.y + dest.h / 2;
+  context.strokeText(textCharacter, cx, cy);
+  context.fillText(textCharacter, cx, cy);
+  context.restore();
+}
+
+const UP_ARROW = '\u2B06';
+const DOWN_ARROW = '\u2B07';
 export function drawCharacter(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
   const now = performance.now();
   _updateCharacterAnimationTimings(drawState, now);
   const isFlashing = _startFlashStateIfActive(drawState, context, now);
   _drawBody(drawState, context);
   _drawFace(drawState, context);
+  if (isFlashing) _drawBodyText(drawState, context, drawState.isNextFlashPositive ? UP_ARROW : DOWN_ARROW);
   if (isFlashing) _endFlashState(context);
   _drawMoodIconIfActive(drawState, context, now);
 }
