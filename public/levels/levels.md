@@ -25,6 +25,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 
 * Librarian=8
 * Clown=1
+* Hodler=1
 
 # Middling Crowd
 
@@ -37,6 +38,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Ice Skater=3
 * Mogger=4
 * Artist=3
+* Hodler=2
 
 # Theater
 
@@ -49,6 +51,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Ice Skater=7
 * Mogger=8
 * Artist=6
+* Hodler=5
 
 # Stadium Rally
 
@@ -61,3 +64,4 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Ice Skater=30
 * Mogger=40
 * Artist=30
+* Hodler=20

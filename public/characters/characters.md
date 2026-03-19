@@ -75,3 +75,13 @@
 * description=
 * bodyStartCellNo=33
 * bodyCellCount=4
+
+# Hodler
+
+* title=Hodler
+* description=All about the crypto!
+* bodyStartCellNo=37
+* bodyCellCount=4
+* loves=satoshi|sats|hodl|stacking|stack|halving|halve|mining|hashrate|node|seedphrase|lightning|fees|mempool|nonce|consensus|decentralize|decentralization|scarcity|supply|fork|trustless
+* likes=bitcoin|ethereum|doge|dogecoin|stablecoin|blockchain|crypto|cryptocurrency|wallet|decentralization|hodl|hodler|number|up
+* dislikes=dollar|fiat|fed|reserve|tax|taxes

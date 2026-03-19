@@ -43,43 +43,38 @@ function _calcCellRect(cellNo:number, colCount:number, bodyWidth:number, bodyHei
 // Find all marker pixels (RGB=0xf0) inside the bodyRect area of the spriteMap image.
 // Return a bounding rect that contains all of them.
 function _findFaceRect(bodyRect:Rect, spriteMap:ImageBitmap):Rect {
-  const w = Math.max(1, Math.floor(bodyRect.w));
-  const h = Math.max(1, Math.floor(bodyRect.h));
+  assert(bodyRect.w > 0 && bodyRect.h > 0);
 
+  const w = bodyRect.w, h = bodyRect.h;
   const imgData = createImageDataFromImageBitmap(spriteMap, Math.floor(bodyRect.x), Math.floor(bodyRect.y), w, h);
   const data = imgData.data;
 
-  let minX = w, minY = h, maxX = -1, maxY = -1;
+  let minX = bodyRect.w, minY = bodyRect.h, maxX = -1, maxY = -1;
 
-  // look for marker pixels.
-  for (let yy = 0; yy < h; ++yy) {
-    for (let xx = 0; xx < w; ++xx) {
-      const i = (yy * w + xx) * 4;
+  // Scan through pixels to find marker pixels.
+  for (let y = 0; y < h; ++y) {
+    for (let x = 0; x < w; ++x) {
+      const i = ((y * w) + x) * 4;
+      if (data[i + 3] === 0) continue;
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
-      const a = data[i + 3];
-      if (a === 0) continue;
       if (r === MARKER_R && g === MARKER_G && b === MARKER_B) {
-        if (xx < minX) minX = xx;
-        if (yy < minY) minY = yy;
-        if (xx > maxX) maxX = xx;
-        if (yy > maxY) maxY = yy;
+        if (x < minX) minX = x;
+        if (y < minY) minY = y;
+        if (x > maxX) maxX = x;
+        if (y > maxY) maxY = y;
       }
     }
   }
 
-  if (maxX === -1) {
-    // no marker found — return a reasonable default (small area near upper-center)
-    const defW = Math.max(1, Math.floor(bodyRect.w / 4));
-    const defH = Math.max(1, Math.floor(bodyRect.h / 6));
-    const defX = Math.max(0, Math.floor(bodyRect.w / 2 - defW / 2));
-    const defY = Math.max(0, Math.floor(bodyRect.h / 4));
-    return { x: defX, y: defY, w: defW, h: defH };
-  }
+  // If no marker found — return the entire rect to make it visually obvious that it's wrong during dev testing.
+  if (maxX === -1) return { x:0, y:0, w, h };
 
   const rect = { x: minX, y: minY, w: (maxX - minX + 1), h: (maxY - minY + 1) };
-  rect.x -= CX_EYE_MARGIN;
+
+  // Fudge the rect bounds to account for the marker pixels corresponding to eye/mouth positions. (More explanation at top of file comments)
+  rect.x -= CX_EYE_MARGIN; 
   rect.w += (CX_EYE_MARGIN * 2);
   rect.y -= CY_EYE_MARGIN;
   rect.h += (CY_EYE_MARGIN + CY_MOUTH_MARGIN);
@@ -224,6 +219,7 @@ export function createCharacterDrawState(spriteset:CharacterSpriteset, character
     destRect,
     nextBodyFrameChangeTime:now + getNextBodyFrameChangeInterval(happiness) + staggerAnimationTime,
     nextMoodIconDisplayTime:now + getNextMoodIconDisplayInterval(happiness) + staggerAnimationTime,
+    isNextFlashPositive:true,
     nextFlashTime:UNSPECIFIED_TIME
   }
 }
