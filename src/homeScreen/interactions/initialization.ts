@@ -1,6 +1,6 @@
 import { loadCharacterSpriteset } from "@/components/audienceView/characterSpriteUtil";
 import { getRecentPrompts } from "@/persistence/recentPrompts";
-import { isEmbeddingLoaded } from "@/transformersJs/embeddingUtil";
+import { isEmbedderInitialized } from "@/transformersJs/transformersEmbedder";
 import { initGame } from "./game";
 import CharacterSpriteset from "@/components/audienceView/types/CharacterSpriteset";
 import { AverageHappinessChangeCallback } from "@/game/happinessUtil";
@@ -11,7 +11,7 @@ export type InitResults = {
 }
 
 export async function init(setRecentPrompts:Function, setAverageHappiness:AverageHappinessChangeCallback):Promise<InitResults|null> {
-  if (!isEmbeddingLoaded()) return null;
+  if (!isEmbedderInitialized()) return null;
 
   // It's going to double-load in dev environment, and that's harmless. If you decide to add a flag check, you also
   // need to do something like have 3 potential return states, e.g., failed-try-again-after-llm-load, failed-dont-try-again, success.

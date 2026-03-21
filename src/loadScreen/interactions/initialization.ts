@@ -1,4 +1,4 @@
-import { initEmbeddings } from "@/transformersJs/embeddingUtil";
+import { initEmbedder } from "@/transformersJs/transformersEmbedder";
 
 let isInitialized = false;
 let isInitializing = false;
@@ -12,7 +12,7 @@ export async function startLoadingModel(setPercentComplete:Function, setCurrenTa
       setPercentComplete(percentComplete);
       setCurrenTask(status);
     }
-    await initEmbeddings(_onStatusUpdate);
+    await initEmbedder(_onStatusUpdate);
     isInitialized = true;
     return true;
   } catch(e) {

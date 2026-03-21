@@ -22,7 +22,13 @@ function _getOffscreenCanvas(width:number, height:number):Canvas {
 }
 
 function _getRenderingContext(canvas:Canvas):CanvasRenderingContext2D {
-  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
+  let ctx = null as CanvasRenderingContext2D | null;
+  try {
+    ctx = (canvas as any).getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D | null;
+  } catch (e) {
+    ctx = null;
+  }
+  if (!ctx) ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
   if (!ctx) throw Error('Could not get 2D context from offscreen canvas.');
   return ctx;
 }

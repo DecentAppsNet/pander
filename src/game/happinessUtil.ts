@@ -4,6 +4,7 @@ import AudienceMember from "./types/AudienceMember";
 import { clamp, isClose } from "@/common/mathUtil";
 import HappinessChange from "./types/HappinessChange";
 import { WordCooldownFactorCallback } from "./wordAnalysisUtil";
+import { embedSentence } from "@/transformersJs/transformersEmbedder";
 
 export const DEFAULT_HAPPINESS = .5;
 const LOVE_BUMP = .2;
@@ -53,6 +54,9 @@ export function nameToHappinessFunction(happinessFunctionName:string|null, happi
 
 /* Finds all happiness changes for audience members in response to player text. */
 export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onFindHappinessChange:FindHappinessChangeCallback, onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
+  const beforeTime = performance.now();
+  const playerTextVector = await embedSentence(playerText);
+  console.log(`embedding created in ${performance.now() - beforeTime} ms`);
   const changes:HappinessChange[] = [];
   audienceMembers.forEach(async (audienceMember) => {
     const happinessDelta = await onFindHappinessChange(playerText, audienceMember, onWordCooldownFactor);
