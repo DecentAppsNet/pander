@@ -16,6 +16,7 @@ import { promptFromChatInput, startLevel } from "./interactions/game";
 import LevelSelector from "@/components/levelSelector/LevelSelector";
 import HappinessMeter from "@/components/happinessMeter/HappinessMeter";
 import { DEFAULT_HAPPINESS } from "@/game/happinessUtil";
+import ToastPane from "@/components/toasts/ToastPane";
 
 function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,6 +69,8 @@ function HomeScreen() {
         onApprove={() => enableSpeechAfterDialog(setModalDialogName, setIsSpeechEnabled)}
         onCancel={() => setModalDialogName(null)}
       />
+
+      <ToastPane />
     </div>
   );
 }

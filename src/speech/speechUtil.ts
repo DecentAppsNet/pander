@@ -1,20 +1,26 @@
 import { Recognizer, setModelsBaseUrl } from 'sl-web-speech';
+import CoherenceEvaluator from './CoherenceEvaluator';
+import { calcSpeechCoherence } from './coherenceUtil';
 
 export type StringCallback = (s:string) => void;
-
-function _noOpStringCallback(_ignored:string) {};
+export type UpdateCoherenceCallback = (coherence:number) => void;
 
 let theRecognizer:Recognizer|null = null;
 let theIsSpeechEnabled = false;
 let theInitSpeechPromise:Promise<boolean>|null = null;
 
-export async function initSpeech(onPromptFromSpeech:StringCallback):Promise<boolean> {
+function _onUpdateCoherenceFromSpeech(speech:string, onUpdateCoherence:UpdateCoherenceCallback) {
+  const coherence = calcSpeechCoherence(speech);
+  onUpdateCoherence(coherence);
+}
+
+export async function initSpeech(onPromptFromSpeech:StringCallback, onUpdateCoherence:UpdateCoherenceCallback):Promise<boolean> {
   if (theInitSpeechPromise) return theInitSpeechPromise;
   theInitSpeechPromise = new Promise<boolean>(async (resolve) => {
 
     function _onReady() {
       if (!theRecognizer) throw Error('Unexpected');
-      theRecognizer.bindCallbacks(onPromptFromSpeech, () => {}, () => {}, _noOpStringCallback);
+      theRecognizer.bindCallbacks(onPromptFromSpeech, () => {}, () => {}, (speech) => _onUpdateCoherenceFromSpeech(speech, onUpdateCoherence));
       resolve(true);
     }
 
