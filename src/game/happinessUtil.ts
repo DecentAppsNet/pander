@@ -73,6 +73,7 @@ export function calcAverageHappiness(audienceMembers:AudienceMember[]):number {
 /* Updates audience members with happiness changes, publishing corresponding events for UI components to respond to. */
 export function applyHappinessChanges(averageHappiness:number, happinessChanges:HappinessChange[], audienceMembers:AudienceMember[], 
     onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback):number {
+  if (!happinessChanges.length) return averageHappiness;
   happinessChanges.forEach(change => {
     const audienceMember = _findAudienceMemberByCharacterId(audienceMembers, change.characterId);
     assertNonNullable(audienceMember);

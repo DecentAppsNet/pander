@@ -37,6 +37,11 @@ export async function startLevel(levelId:string, setAudienceMembers:Function) {
 
 const COHERENCE_THRESHOLD = .6;
 export function onUpdateCoherence(coherence:number) {
+  const wasAudienceConfused = theLastMessageIncoherent;
   theLastMessageIncoherent = coherence < COHERENCE_THRESHOLD;
-  if (theLastMessageIncoherent) infoToast('Audience is confused. Speak in full sentences.');
+  if (theLastMessageIncoherent) {
+    infoToast('Audience is confused. Speak in full sentences.');
+  } else if (wasAudienceConfused) {
+    infoToast('Audience is no longer confused.');
+  }
 }
