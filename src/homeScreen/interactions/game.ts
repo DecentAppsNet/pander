@@ -1,4 +1,5 @@
 import { setHappiness } from "@/components/audienceView/audienceEventUtil";
+import { DeckChangedCallback } from "@/game/deckUtil";
 import GameSession from "@/game/GameSession";
 import { AverageHappinessChangeCallback } from "@/game/happinessUtil";
 import { getDefaultLevelId } from "@/game/levelFileUtil";
@@ -9,12 +10,13 @@ let theOnSetRecentPrompts:Function|null = null;
 let theGameSession:GameSession|null = null;
 let theLastMessageIncoherent:boolean = false;
 
-export async function initGame(onSetRecentPrompts:Function, setAverageHappiness:AverageHappinessChangeCallback):Promise<string> {
+export async function initGame(onSetRecentPrompts:Function, setAverageHappiness:AverageHappinessChangeCallback, 
+    onDeckChanged:DeckChangedCallback):Promise<string> {
   theOnSetRecentPrompts = onSetRecentPrompts;
   function _setHappiness(characterId:string, happiness:number) {
     if (!theLastMessageIncoherent) setHappiness(characterId, happiness);
   }
-  theGameSession = new GameSession(_setHappiness, setAverageHappiness);
+  theGameSession = new GameSession(_setHappiness, setAverageHappiness, onDeckChanged);
   const levelId = await getDefaultLevelId();
   return levelId;
 }

@@ -3,8 +3,18 @@ import WordUsageHistory from "./types/WordUsageHistory";
 
 export type WordCooldownFactorCallback = (word:string) => number;
 
+export function promptToWords(playerText:string):string[] {
+  return playerText.split(' ').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
+}
+
+export function promptToUniqueWords(playerText:string):string[] {
+  const words = promptToWords(playerText);
+  const wordSet:Set<string> = new Set<string>(words);
+  return Array.from(wordSet);
+}
+
 export function updateWordUsageHistory(playerText:string, wordUsageHistory:WordUsageHistory, now:number = performance.now()) {
-  const words = playerText.split(' ').map(t => t.trim().toLowerCase());
+  const words = promptToWords(playerText);
   words.forEach(word => wordUsageHistory[word] = now);
 }
 

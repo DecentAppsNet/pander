@@ -3,8 +3,7 @@ import { assertNonNullable } from "decent-portal";
 import AudienceMember from "./types/AudienceMember";
 import { clamp, isClose } from "@/common/mathUtil";
 import HappinessChange from "./types/HappinessChange";
-import { WordCooldownFactorCallback } from "./wordAnalysisUtil";
-import { embedSentence } from "@/transformersJs/transformersEmbedder";
+import { promptToUniqueWords, WordCooldownFactorCallback } from "./wordAnalysisUtil";
 
 export const DEFAULT_HAPPINESS = .5;
 const LOVE_BUMP = .2;
@@ -20,17 +19,10 @@ function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], char
   return audienceMembers.find(am => am.characterId === characterId) || null;
 }
 
-function _playerTextToWords(playerText:string):string[] {
-  const wordSet:Set<string> = new Set<string>();
-  const words = playerText.split(' ').map(t => t.trim().toLowerCase());
-  words.forEach(word => wordSet.add(word)); // Assign to set to ensure uniqueness.
-  return Array.from(wordSet);
-}
-
 /* Default function for determining happiness change for one audience member in response to player text. 
    Returns a number representing the amount by which happiness should change. */
 export async function findHappinessChangeDefault(playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback):Promise<number> {
-  const words = _playerTextToWords(playerText);
+  const words = promptToUniqueWords(playerText);
   if (!words.length) return 0;
   let delta = 0;
   words.forEach(word => {
@@ -54,9 +46,6 @@ export function nameToHappinessFunction(happinessFunctionName:string|null, happi
 
 /* Finds all happiness changes for audience members in response to player text. */
 export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onFindHappinessChange:FindHappinessChangeCallback, onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
-  const beforeTime = performance.now();
-  const playerTextVector = await embedSentence(playerText);
-  console.log(`embedding created in ${performance.now() - beforeTime} ms`);
   const changes:HappinessChange[] = [];
   audienceMembers.forEach(async (audienceMember) => {
     const happinessDelta = await onFindHappinessChange(playerText, audienceMember, onWordCooldownFactor);

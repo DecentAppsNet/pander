@@ -17,7 +17,9 @@ import LevelSelector from "@/components/levelSelector/LevelSelector";
 import HappinessMeter from "@/components/happinessMeter/HappinessMeter";
 import { DEFAULT_HAPPINESS } from "@/game/happinessUtil";
 import ToastPane from "@/components/toasts/ToastPane";
-
+import CardHandBox from "@/components/cardHandBox/CardHandBox";
+import Deck from "@/game/types/cards/Deck";
+  
 function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
@@ -27,11 +29,12 @@ function HomeScreen() {
   const [audienceMembers, setAudienceMembers] = useState<AudienceMember[]>([]);
   const [levelId, setLevelId] = useState<string|null>(null);
   const [averageHappiness, setAverageHappiness] = useState<number>(DEFAULT_HAPPINESS);
+  const [deck, setDeck] = useState<Deck|null>(null);
   
   useEffect(() => {
     if (isLoading) return;
 
-    init(setRecentPrompts, setAverageHappiness).then(initResults => { 
+    init(setRecentPrompts, setAverageHappiness, setDeck).then(initResults => { 
       if (!initResults) { setIsLoading(true); return; }
       setCharacterSpriteset(initResults.characterSpriteset);
       setLevelId(initResults.levelId);
@@ -55,6 +58,7 @@ function HomeScreen() {
           if (!isSpeechAvailable()) { setModalDialogName(MicrophonePermissionDialog.name); return; }
           setIsSpeechEnabled(toggleSpeech());
         }} isSpeechEnabled={isSpeechEnabled}/>
+        <CardHandBox deck={deck} />
       </div>
       <div className={styles.infoPanel}>
         <HappinessMeter happiness={averageHappiness} />
