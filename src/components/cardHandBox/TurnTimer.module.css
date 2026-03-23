@@ -1,0 +1,12 @@
+.dial {
+  position: absolute;
+  top: .5vh;
+  right: 1vh;
+  width: 2vh;
+  height: 2vh;
+  border-radius: 50%;
+  background: conic-gradient(
+    #f00 calc(var(--value) * 3.6deg),
+    #eee 0deg
+  );
+}

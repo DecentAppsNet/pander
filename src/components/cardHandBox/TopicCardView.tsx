@@ -4,7 +4,8 @@ import KeywordGoal from "@/game/types/cards/KeywordGoal";
 import styles from './CardView.module.css';
 
 type Props = {
-  card:TopicCard
+  card:TopicCard,
+  isPreview?:boolean
 }
 
 function _renderKeywordGoals(keywordGoals:KeywordGoal[]) {
@@ -15,10 +16,10 @@ function _renderKeywordGoals(keywordGoals:KeywordGoal[]) {
   </div>
 }
 
-function TopicCardView({card}:Props) {
-  const keywordsContent = _renderKeywordGoals(card.keywordGoals);
+function TopicCardView({card, isPreview}:Props) {
+  const keywordsContent = isPreview ? null : _renderKeywordGoals(card.keywordGoals);
   return (
-    <CardView card={card}>
+    <CardView card={card} isPreview={isPreview}>
       {keywordsContent}
     </CardView>)
 }

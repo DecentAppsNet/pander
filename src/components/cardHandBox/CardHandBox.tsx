@@ -13,9 +13,9 @@ type Props = {
   deck: Deck | null;
 }
 
-function _cardViewContent(card: Card): ReactNode {
+function _cardViewContent(card:Card, isPreview:boolean): ReactNode {
   switch (card.type) {
-    case CardType.Topic: return <TopicCardView key={card.key} card={card as TopicCard} />
+    case CardType.Topic: return <TopicCardView key={card.key} card={card as TopicCard} isPreview={isPreview}/>
     default: throw Error(`Don't know how to render card type - ${card.type}.`);
   }
 }
@@ -30,11 +30,22 @@ function CardHandBox({ deck }: Props) {
   if (!deck) return null;
   const remainingCardCount = deck.cards.length - deck.activeCardNo - 1;
   const activeCard = deck.cards[deck.activeCardNo];
+  const previewCardContent = remainingCardCount ? (
+    <div className={styles.previewWrapper} aria-hidden>
+      <div className={styles.nextLabel}>next</div>
+      {_cardViewContent(deck.cards[deck.activeCardNo+1], true)}
+    </div>
+  ) : null;
   const deckCountText = _getDeckCountText(remainingCardCount);
   return (
     <div className={styles.container}>
       <div className={styles.hand}>
-        {_cardViewContent(activeCard)}
+        <div className={styles.centerArea}>
+          <div className={styles.activeWrapper}>
+            {_cardViewContent(activeCard, false)}
+          </div>
+          {previewCardContent}
+        </div>
       </div>
       <div className={styles.deckInfo}>
         <div className={styles.deckCount}>

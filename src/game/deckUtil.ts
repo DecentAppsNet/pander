@@ -32,7 +32,14 @@ export function createSomeStupidDeck():Deck {
       title: 'Early Days',
       description: 'Tell a brief anecdote from your past using the keywords below.',
       keywordGoals: _createKeywordGoals(['when', 'young', 'used'])
-    }
+    },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Just Like You',
+      description: `Make a connection by telling your audience you're just like them.`,
+      keywordGoals: _createKeywordGoals(['both', 'same', 'share'])
+    },
   ];
   return { cards, activeCardNo:0 };
 }

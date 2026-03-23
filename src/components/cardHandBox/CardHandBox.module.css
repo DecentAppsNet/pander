@@ -9,11 +9,45 @@
 }
 
 .hand {
+  position: relative;
   display: flex;
   gap: 15px;
   max-width: 1200px;
   width: 100%;
   justify-content: center;
+}
+
+.centerArea {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.activeWrapper {
+  display: inline-block;
+}
+
+.previewWrapper {
+  position: absolute;
+  top: 50%;
+  left: 60%;
+  transform: translate(calc(50% + 1rem), -50%);
+  pointer-events: none;
+}
+
+.nextLabel {
+  position: absolute;
+  bottom: calc(100% + 0.4rem);
+  left: 50%;
+  transform: translateX(-50%);
+  color: #9aa0a6;
+  font-size: 1vh;
+  letter-spacing: 0.6vh;
+  white-space: nowrap;
+  text-align: center;
+  pointer-events: none;
 }
 
 .viewDeckBtn {

@@ -1,8 +1,9 @@
 
 .card {
   flex: 1;
+  position: relative;
   max-width: 26vh;
-  min-height: 14vh;
+  height: 14vh;
   border-radius: .8vh;
   padding: 1.2vh;
   display: flex;
@@ -14,6 +15,12 @@
   background-color: #565656;
   color: #fff;
   font-family: inherit;
+}
+
+.cardPreview {
+  composes: card;
+  max-width: 16vh;
+  height: 10vh;
 }
 
 .cardHeader {

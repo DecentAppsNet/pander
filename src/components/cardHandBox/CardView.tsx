@@ -2,19 +2,24 @@ import type { ReactNode } from 'react';
 
 import Card from '@/game/types/cards/Card';
 import styles from './CardView.module.css';
+import TurnTimer from './TurnTimer';
 
 type Props = {
   card: Card,
-  children?: ReactNode
+  children?: ReactNode,
+  isPreview?: boolean
 }
 
-function CardView({ card, children }: Props) {
+function CardView({ card, children, isPreview }: Props) {
+  const cardClass = isPreview ? styles.cardPreview : styles.card;
+  const turnTimerContent = isPreview ? null : <TurnTimer duration={30000} />;
   return (
-    <div className={`${styles.card}`}>
+    <div className={cardClass}>
       <div className={styles.cardHeader}>
           <span className={styles.cardTitle}>{card.title}</span>
       </div>
       <p className={styles.cardDescription}>{card.description}</p>
+      {turnTimerContent}
       <div className={styles.cardInterior}>{children}</div>
     </div>
   )
