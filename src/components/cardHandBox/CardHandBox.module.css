@@ -44,7 +44,7 @@
   transform: translateX(-50%);
   color: #9aa0a6;
   font-size: 1vh;
-  letter-spacing: 0.6vh;
+  letter-spacing: 0.06em;
   white-space: nowrap;
   text-align: center;
   pointer-events: none;
@@ -52,7 +52,7 @@
 
 .shrinkToNothing {
   transform-origin: center;
-  animation: shrinkToNothing 200ms cubic-bezier(.22,.9,.33,1) forwards;
+  animation: shrinkToNothing 1200ms cubic-bezier(.22,.9,.33,1) forwards;
 }
 
 @keyframes shrinkToNothing {
@@ -66,7 +66,7 @@
   /* Animate the preview wrapper so it moves to be centered in the parent */
   transform-origin: center;
   will-change: transform, left;
-  animation: moveToCenter 340ms cubic-bezier(.22,.9,.33,1) forwards;
+  animation: moveToCenter 1200ms cubic-bezier(.22,.9,.33,1) forwards;
 }
 
 @keyframes moveToCenter {
@@ -76,7 +76,7 @@
   }
   to {
     left: 50%;
-    transform: translate(-50%, -50%) scale(1, 1.4);
+    transform: translate(-50%, -50%) scale(1.6, 1.4);
   }
 }
 
@@ -142,6 +142,6 @@
 }
 
 .hidden {
-  visibility: hidden;
+  display: none;
   pointer-events: none;
 }

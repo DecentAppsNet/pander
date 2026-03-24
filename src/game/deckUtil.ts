@@ -40,6 +40,13 @@ export function createSomeStupidDeck():Deck {
       description: `Make a connection by telling your audience you're just like them.`,
       keywordGoals: _createKeywordGoals(['both', 'same', 'share'])
     },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Scapegoat',
+      description: `Pick some group or person that's responsible for everyone's pain and suffering.`,
+      keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible'])
+    },
   ];
   return { cards, activeCardNo:0 };
 }
