@@ -50,6 +50,34 @@
   pointer-events: none;
 }
 
+.shrinkToNothing {
+  transform-origin: center;
+  animation: shrinkToNothing 200ms cubic-bezier(.22,.9,.33,1) forwards;
+}
+
+@keyframes shrinkToNothing {
+  to {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+.moveToCenter {
+  /* Animate the preview wrapper so it moves to be centered in the parent */
+  animation: moveToCenter 200ms cubic-bezier(.22,.9,.33,1) forwards;
+}
+
+@keyframes moveToCenter {
+  from {
+    left: 60%;
+    transform: translate(calc(50% + 1rem), -50%);
+  }
+  to {
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
 .viewDeckBtn {
   background-color: #444;
   color: #fff;
@@ -109,4 +137,9 @@
   background-color: rgba(231, 76, 60, 0.2);
   color: #ff6b5b;
   border: 1px solid rgba(231, 76, 60, 0.4);
+}
+
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
 }

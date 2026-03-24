@@ -53,6 +53,11 @@ class GameSession {
 
   // Receive a prompt of player text, make updates to game state, and publish corresponding events that may be received by UI components.
   async prompt(playerText:string) {
+    if (playerText === 'next') {
+      this._deck = duplicateDeck(this._deck);
+      this._deck.activeCardNo++;
+      this._onDeckChanged(this._deck);
+    }
     const onWordCooldownFactor:WordCooldownFactorCallback = (word:string) => findWordCooldownFactor(word, this._wordUsageHistory);
     let happinessChanges = await findHappinessChangesForAudience(playerText, this._audienceMembers, 
         this._onFindHappinessChange, onWordCooldownFactor);
