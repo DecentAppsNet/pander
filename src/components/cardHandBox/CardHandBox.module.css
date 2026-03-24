@@ -64,17 +64,19 @@
 
 .moveToCenter {
   /* Animate the preview wrapper so it moves to be centered in the parent */
-  animation: moveToCenter 200ms cubic-bezier(.22,.9,.33,1) forwards;
+  transform-origin: center;
+  will-change: transform, left;
+  animation: moveToCenter 340ms cubic-bezier(.22,.9,.33,1) forwards;
 }
 
 @keyframes moveToCenter {
   from {
     left: 60%;
-    transform: translate(calc(50% + 1rem), -50%);
+    transform: translate(calc(50% + 1rem), -50%) scale(1, 1);
   }
   to {
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(1, 1.4);
   }
 }
 
