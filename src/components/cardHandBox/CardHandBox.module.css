@@ -3,16 +3,16 @@
   justify-content: center;
   align-items: center;
   width: 100%;
-  padding: 10px;
+  padding: 1vh;
   background-color: var(--color-background-secondary, #2c2c2c);
-  border-top: 1px solid var(--color-border, #444);
+  border-top: 1vh solid var(--color-border, #444);
 }
 
 .hand {
   position: relative;
   display: flex;
-  gap: 15px;
-  max-width: 1200px;
+  gap: 1.5vh;
+  max-width: 120vh;
   width: 100%;
   justify-content: center;
 }
@@ -33,18 +33,18 @@
   position: absolute;
   top: 50%;
   left: 60%;
-  transform: translate(calc(50% + 1rem), -50%);
+  transform: translate(calc(50% + 1vh), -50%);
   pointer-events: none;
 }
 
 .nextLabel {
   position: absolute;
-  bottom: calc(100% + 0.4rem);
+  bottom: calc(100% + 0.4vh);
   left: 50%;
   transform: translateX(-50%);
   color: #9aa0a6;
   font-size: 1vh;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.06vh;
   white-space: nowrap;
   text-align: center;
   pointer-events: none;
@@ -52,7 +52,7 @@
 
 .shrinkToNothing {
   transform-origin: center;
-  animation: shrinkToNothing 1200ms cubic-bezier(.22,.9,.33,1) forwards;
+  animation: shrinkToNothing 200ms cubic-bezier(.22,.9,.33,1) forwards;
 }
 
 @keyframes shrinkToNothing {
@@ -66,7 +66,7 @@
   /* Animate the preview wrapper so it moves to be centered in the parent */
   transform-origin: center;
   will-change: transform, left;
-  animation: moveToCenter 1200ms cubic-bezier(.22,.9,.33,1) forwards;
+  animation: moveToCenter 200ms cubic-bezier(.22,.9,.33,1) forwards;
 }
 
 @keyframes moveToCenter {
@@ -76,31 +76,20 @@
   }
   to {
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.6, 1.4);
+    transform: translate(-50%, -50%) scale(1.9, 1.4);
   }
 }
 
-.viewDeckBtn {
-  background-color: #444;
-  color: #fff;
-  border: 1px solid #555;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
 .deckInfo {
-  margin-left: 20px;
+  margin-left: 2vh;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
 }
 
 .deckCount {
-  margin-top: 8px;
-  font-size: 0.8rem;
+  margin-top: .8vh;
+  font-size: 1.5vh;
   color: #aaa;
   text-align: center;
 }
@@ -112,33 +101,6 @@
 .viewDeckBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.impactContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.impactTag {
-  font-size: 0.70rem;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.impactPos {
-  background-color: rgba(46, 204, 113, 0.2);
-  color: #58d68d;
-  border: 1px solid rgba(46, 204, 113, 0.4);
-}
-
-.impactNeg {
-  background-color: rgba(231, 76, 60, 0.2);
-  color: #ff6b5b;
-  border: 1px solid rgba(231, 76, 60, 0.4);
 }
 
 .hidden {

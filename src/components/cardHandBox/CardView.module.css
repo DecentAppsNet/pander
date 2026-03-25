@@ -2,7 +2,7 @@
 .card {
   flex: 1;
   position: relative;
-  max-width: 26vh;
+  width: 30vh;
   height: 14vh;
   border-radius: .8vh;
   padding: 1.2vh;
@@ -19,7 +19,7 @@
 
 .cardPreview {
   composes: card;
-  max-width: 16vh;
+  width: 16vh;
   height: 10vh;
 }
 

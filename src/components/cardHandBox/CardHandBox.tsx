@@ -9,7 +9,7 @@ import Deck from '@/game/types/cards/Deck';
 
 // Adapted from Peter's https://github.com/Syntax753/pander/blob/carder/src/components/chat/CardHandBox.tsx
 
-const CHANGE_ACTIVE_CARD_DURATION = 1200; // Must match CSS animations in CardHandBox.module.css.
+const CHANGE_ACTIVE_CARD_DURATION = 200; // Must match CSS animations in CardHandBox.module.css.
 
 type Props = {
   deck: Deck | null;
@@ -47,27 +47,30 @@ function CardHandBox({ deck }: Props) {
   }, [deck]);
   
   if (!currentDeck) return null;
-  const remainingCardCount = currentDeck.cards.length - currentDeck.activeCardNo - 1;
   
-  const activeCardClasses = isActiveCardChanging ? `${styles.activeWrapper} ${styles.shrinkToNothing}` : styles.activeWrapper;
+  const activeCardClasses = isActiveCardChanging ? `${styles.activeWrapper} ${styles.shrinkToNothing}` : `${styles.activeWrapper}`;
   const previewCardClasses = isActiveCardChanging ? `${styles.previewWrapper} ${styles.moveToCenter}` : styles.previewWrapper;
   const nextLabelClasses = isActiveCardChanging ? styles.hidden : styles.nextLabel;
 
-  const activeCard = currentDeck.cards[currentDeck.activeCardNo];
-  const previewCardContent = remainingCardCount ? (
+  const remainingCardCount = currentDeck.cards.length - currentDeck.activeCardNo - 1;
+  const activeCardContent = remainingCardCount > -1 ? (
+    <div className={activeCardClasses}>
+      {_cardViewContent(currentDeck.cards[currentDeck.activeCardNo], false)}
+    </div>
+  ) : null;
+  const previewCardContent = remainingCardCount > 0 ? (
     <div className={previewCardClasses} aria-hidden>
       <div className={nextLabelClasses}>next</div>
       {_cardViewContent(currentDeck.cards[currentDeck.activeCardNo + 1], true)}
     </div>
   ) : null;
+  
   const deckCountText = _getDeckCountText(remainingCardCount);
   return (
     <div className={styles.container}>
       <div className={styles.hand}>
         <div className={styles.centerArea}>
-          <div className={activeCardClasses}>
-            {_cardViewContent(activeCard, false)}
-            </div>
+          {activeCardContent}
           {previewCardContent}
         </div>
       </div>

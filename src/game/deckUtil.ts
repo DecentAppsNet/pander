@@ -29,23 +29,58 @@ export function createSomeStupidDeck():Deck {
     { 
       key: _nextKey(),
       type:CardType.Topic, 
-      title: 'Early Days',
-      description: 'Tell a brief anecdote from your past using the keywords below.',
-      keywordGoals: _createKeywordGoals(['when', 'young', 'used'])
+      title: 'Simple Greeting',
+      description: 'Say hi to the crowd.',
+      keywordGoals: _createKeywordGoals(['welcome', 'everyone', 'candidate'])
     },
     { 
       key: _nextKey(),
       type:CardType.Topic, 
-      title: 'Just Like You',
-      description: `Make a connection by telling your audience you're just like them.`,
+      title: 'Town Pride',
+      description: 'Show appreciation for their place on the map.',
+      keywordGoals: _createKeywordGoals(['town', 'street', 'barber'])
+    },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Early Days',
+      description: 'Tell a brief anecdote from your past.',
+      keywordGoals: _createKeywordGoals(['when', 'young', 'fishing'])
+    },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Just Like Them',
+      description: `Make em feel you're one of them.`,
       keywordGoals: _createKeywordGoals(['both', 'same', 'share'])
     },
     { 
       key: _nextKey(),
       type:CardType.Topic, 
       title: 'Scapegoat',
-      description: `Pick some group or person that's responsible for everyone's pain and suffering.`,
+      description: `Pick somebody to blame for the World's problems.`,
       keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible'])
+    },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Gonna Fix It',
+      description: `You've got the solution.`,
+      keywordGoals: _createKeywordGoals(['assess', 'plan', 'sleeves'])
+    },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Time to Rhyme',
+      description: `Everybody likes some good rhymin'`,
+      keywordGoals: _createKeywordGoals(['frustration', 'stagnation', 'nation'])
+    },
+    { 
+      key: _nextKey(),
+      type:CardType.Topic, 
+      title: 'Final Call',
+      description: `Wrap up the speech and remind them to vote.`,
+      keywordGoals: _createKeywordGoals(['grateful', 'time', 'vote'])
     },
   ];
   return { cards, activeCardNo:0 };

@@ -13,12 +13,13 @@ type Props = {
 function CardView({ card, children, isPreview }: Props) {
   const cardClass = isPreview ? styles.cardPreview : styles.card;
   const turnTimerContent = isPreview ? null : <TurnTimer duration={30000} />;
+  const descriptionContent =  <p className={styles.cardDescription}>{card.description}</p>;
   return (
     <div className={cardClass}>
       <div className={styles.cardHeader}>
           <span className={styles.cardTitle}>{card.title}</span>
       </div>
-      <p className={styles.cardDescription}>{card.description}</p>
+      {descriptionContent}
       {turnTimerContent}
       <div className={styles.cardInterior}>{children}</div>
     </div>
