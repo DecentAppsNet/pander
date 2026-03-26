@@ -5,8 +5,9 @@ import AudienceMember from "./types/AudienceMember"
 import Level, { duplicateLevel } from "./types/Level";
 import WordUsageHistory from "./types/WordUsageHistory";
 import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallback } from "./wordAnalysisUtil";
-import { createSomeStupidDeck, DeckChangedCallback, updateCardFromPrompt } from "./deckUtil";
+import { createSomeStupidDeck, DeckChangedCallback, isEndOfDeck, updateCardFromPrompt } from "./deckUtil";
 import Deck, { duplicateDeck } from "./types/cards/Deck";
+import GameSessionSettings from "./types/GameSettings";
 
 const _setHappinessNoOp:SetHappinessCallback = (_c:string, _h:number) => { console.warn('setHappiness() not bound in game session.'); }
 const _averageHappinessChangeNoOp:AverageHappinessChangeCallback = (_h:number) => { console.warn('onAverageHappinessChange() not bound in game session.'); } 
@@ -30,11 +31,21 @@ class GameSession {
   private _averageHappiness:number = DEFAULT_HAPPINESS;
   private _wordUsageHistory:WordUsageHistory = {};
   private _deck:Deck = { cards:[], activeCardNo: 0 };
+  private _settings:GameSessionSettings;
 
-  constructor(onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, onDeckChanged:DeckChangedCallback) {
+  constructor(settings:GameSessionSettings, onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, onDeckChanged:DeckChangedCallback) {
     this._onSetHappiness = onSetHappiness;
     this._onAverageHappinessChange = onAverageHappinessChange;
     this._onDeckChanged = onDeckChanged;
+    this._settings = settings;
+  }
+
+  private _goNextCard() {
+    if (isEndOfDeck(this._deck)) return;
+    this._deck = duplicateDeck(this._deck);
+    this._deck.activeCardNo++;
+    this._onDeckChanged(this._deck);
+    if (!isEndOfDeck(this._deck)) setTimeout(this._goNextCard, this._settings.turnDuration);
   }
 
   // Loads a level and sets session state to begin playing in it.
@@ -53,11 +64,6 @@ class GameSession {
 
   // Receive a prompt of player text, make updates to game state, and publish corresponding events that may be received by UI components.
   async prompt(playerText:string) {
-    if (playerText === 'next') {
-      this._deck = duplicateDeck(this._deck);
-      this._deck.activeCardNo++;
-      this._onDeckChanged(this._deck);
-    }
     const onWordCooldownFactor:WordCooldownFactorCallback = (word:string) => findWordCooldownFactor(word, this._wordUsageHistory);
     let happinessChanges = await findHappinessChangesForAudience(playerText, this._audienceMembers, 
         this._onFindHappinessChange, onWordCooldownFactor);
@@ -67,6 +73,12 @@ class GameSession {
     if (cardHappinessChanges.length > 0) happinessChanges = happinessChanges.concat(cardHappinessChanges);
     this._averageHappiness = applyHappinessChanges(this._averageHappiness, happinessChanges, this._audienceMembers, 
         this._onSetHappiness, this._onAverageHappinessChange);
+  }
+
+  // Called when player has stopped talking or used the chatbox to submit a prompt.
+  async onStopTalking() {
+    if (isEndOfDeck(this._deck)) return;
+    if (this._deck.cards[this._deck.activeCardNo].isComplete) this._goNextCard();
   }
 
   /* Can be used to make custom happiness functions available for individual levels that override the default happiness function

@@ -20,7 +20,8 @@ function _onPartial(speech:string, onPromptFromSpeech:StringCallback) {
   onPromptFromSpeech(speech);
 }
 
-export async function initSpeech(onPromptFromSpeech:StringCallback, onUpdateCoherence:UpdateCoherenceCallback):Promise<boolean> {
+export async function initSpeech(onPromptFromSpeech:StringCallback, 
+    onUpdateCoherence:UpdateCoherenceCallback, onStopTalking:() => {}):Promise<boolean> {
   if (theInitSpeechPromise) return theInitSpeechPromise;
   theInitSpeechPromise = new Promise<boolean>(async (resolve) => {
 
@@ -29,7 +30,7 @@ export async function initSpeech(onPromptFromSpeech:StringCallback, onUpdateCohe
       theRecognizer.bindCallbacks(
         (speech) => _onPartial(speech, onPromptFromSpeech), 
         () => {}, 
-        () => {}, 
+        onStopTalking, 
         (speech) => _onUpdateCoherenceFromSpeech(speech, onUpdateCoherence)
       );
       resolve(true);

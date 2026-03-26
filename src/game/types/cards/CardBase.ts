@@ -5,6 +5,7 @@ type CardBase = {
   type: CardType;
   title: string;
   description: string;
+  isComplete: boolean;
 }
 
 export function duplicateCardBase(from:CardBase):CardBase {

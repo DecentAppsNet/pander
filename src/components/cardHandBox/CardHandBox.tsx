@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 import Card from '@/game/types/cards/Card';
 import styles from './CardHandBox.module.css';
