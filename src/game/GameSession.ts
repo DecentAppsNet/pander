@@ -8,6 +8,7 @@ import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallb
 import { createSomeStupidDeck, DeckChangedCallback, isEndOfDeck, updateCardFromPrompt } from "./deckUtil";
 import Deck, { duplicateDeck } from "./types/cards/Deck";
 import GameSessionSettings from "./types/GameSettings";
+import { assertNonNullable } from "decent-portal";
 
 const _setHappinessNoOp:SetHappinessCallback = (_c:string, _h:number) => { console.warn('setHappiness() not bound in game session.'); }
 const _averageHappinessChangeNoOp:AverageHappinessChangeCallback = (_h:number) => { console.warn('onAverageHappinessChange() not bound in game session.'); } 
@@ -32,6 +33,7 @@ class GameSession {
   private _wordUsageHistory:WordUsageHistory = {};
   private _deck:Deck = { cards:[], activeCardNo: 0 };
   private _settings:GameSessionSettings;
+  private _turnTimer:NodeJS.Timeout|null = null;
 
   constructor(settings:GameSessionSettings, onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, onDeckChanged:DeckChangedCallback) {
     this._onSetHappiness = onSetHappiness;
@@ -41,11 +43,16 @@ class GameSession {
   }
 
   private _goNextCard() {
+    assertNonNullable(this._deck);
     if (isEndOfDeck(this._deck)) return;
     this._deck = duplicateDeck(this._deck);
     this._deck.activeCardNo++;
     this._onDeckChanged(this._deck);
-    if (!isEndOfDeck(this._deck)) setTimeout(this._goNextCard, this._settings.turnDuration);
+    if (this._turnTimer) {
+      clearTimeout(this._turnTimer);
+      this._turnTimer = null;
+    }
+    if (!isEndOfDeck(this._deck)) this._turnTimer = setTimeout(() => this._goNextCard(), this._settings.turnDuration);
   }
 
   // Loads a level and sets session state to begin playing in it.

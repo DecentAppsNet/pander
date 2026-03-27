@@ -10,8 +10,8 @@ type Props = {
 
 function _renderKeywordGoals(keywordGoals:KeywordGoal[]) {
   return <div className={styles.keywordGoals}>
-    {keywordGoals.map(kg => 
-      <span className={kg.isComplete ? styles.completedKeywordGoal : styles.incompleteKeywordGoal }>{kg.keyword}</span>
+    {keywordGoals.map((kg, index) => 
+      <span key={index} className={kg.isComplete ? styles.completedKeywordGoal : styles.incompleteKeywordGoal }>{kg.keyword}</span>
     )}
   </div>
 }

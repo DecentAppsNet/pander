@@ -66,7 +66,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Scapegoat',
       description: `Pick somebody to blame for the World's problems.`,
-      keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible', 'blame', 'problem', 'trouble', 'problem']),
+      keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible', 'blame', 'problem', 'trouble', 'stink', 'corruption', 'greed', 'evil']),
       isComplete:false
     },
     { 
@@ -118,11 +118,13 @@ const cardTypeToUpdateFunction = {
   [CardType.Topic]: _updateTopicCardFromPrompt,
 }
 export function updateCardFromPrompt(playerText:string, card:Card):UpdateCardChanges {
+  assertNonNullable(card);
   const updateFunction = cardTypeToUpdateFunction[card.type];
   assertNonNullable(updateFunction);
   return updateFunction(playerText, card);
 }
 
 export function isEndOfDeck(deck:Deck):boolean {
+  assertNonNullable(deck);
   return deck.activeCardNo === deck.cards.length;
 }
