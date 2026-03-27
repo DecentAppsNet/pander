@@ -19,8 +19,11 @@ function _nextKey():string {
   return '' + (++theNextKeyNo);
 }
 
-function _createKeywordGoals(keywords:string[]):KeywordGoal[] {
-  return keywords.map(keyword => {return {keyword, isComplete:false} });
+// Randomly select useCount # of keywords and return corresponding goals for them.
+function _createKeywordGoals(keywords:string[], useCount:number = 3):KeywordGoal[] {
+  const shuffledKeywords = keywords.sort(() => 0.5 - Math.random());
+  const selectedKeywords = shuffledKeywords.slice(0, useCount);
+  return selectedKeywords.map(keyword => {return {keyword, isComplete:false} });
 }
 
 // Just use this function to create a deck for now. Wait for the dust to settle before making a clean data-driven approach.
@@ -31,7 +34,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Simple Greeting',
       description: 'Say hi to the crowd.',
-      keywordGoals: _createKeywordGoals(['welcome', 'everyone', 'candidate']),
+      keywordGoals: _createKeywordGoals(['everyone', 'candidate', 'today', 'gathering', 'pleasure', 'crowd', 'honor']),
       isComplete:false
     },
     { 
@@ -39,7 +42,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Town Pride',
       description: 'Show appreciation for their place on the map.',
-      keywordGoals: _createKeywordGoals(['town', 'street', 'barber']),
+      keywordGoals: _createKeywordGoals(['town', 'street', 'barber', 'diner', 'school', 'church', 'history', 'pride', 'century']),
       isComplete:false
     },
     { 
@@ -47,7 +50,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Early Days',
       description: 'Tell a brief anecdote from your past.',
-      keywordGoals: _createKeywordGoals(['when', 'young', 'fishing']),
+      keywordGoals: _createKeywordGoals(['father', 'grandmother', 'fishing', 'struggle', 'birthday', 'first', 'job', 'life', 'lesson', 'bootstraps']),
       isComplete:false
     },
     { 
@@ -55,7 +58,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Just Like Them',
       description: `Make em feel you're one of them.`,
-      keywordGoals: _createKeywordGoals(['both', 'same', 'share']),
+      keywordGoals: _createKeywordGoals(['both', 'same', 'share', 'common', 'understanding', 'relate', 'empathy', 'similar', 'together']),
       isComplete:false
     },
     { 
@@ -63,7 +66,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Scapegoat',
       description: `Pick somebody to blame for the World's problems.`,
-      keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible']),
+      keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible', 'blame', 'problem', 'trouble', 'problem']),
       isComplete:false
     },
     { 
@@ -71,7 +74,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Gonna Fix It',
       description: `You've got the solution.`,
-      keywordGoals: _createKeywordGoals(['assess', 'plan', 'sleeves']),
+      keywordGoals: _createKeywordGoals(['assess', 'plan', 'sleeves', 'work', 'fix', 'solve', 'problem', 'solution', 'ready']),
       isComplete:false
     },
     { 
@@ -79,7 +82,8 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Time to Rhyme',
       description: `Everybody likes some good rhymin'`,
-      keywordGoals: _createKeywordGoals(['frustration', 'stagnation', 'nation']),
+      keywordGoals: _createKeywordGoals(['frustration', 'stagnation', 'nation', 'innovation', 'education', 'imagination', 
+        'dedication', 'motivation', 'inspiration', 'subjugation', 'defecation']),
       isComplete:false
     },
     { 
@@ -87,7 +91,7 @@ export function createSomeStupidDeck():Deck {
       type:CardType.Topic, 
       title: 'Final Call',
       description: `Wrap up the speech and remind them to vote.`,
-      keywordGoals: _createKeywordGoals(['grateful', 'time', 'vote']),
+      keywordGoals: _createKeywordGoals(['grateful', 'time', 'vote', 'goodbye', 'thank', 'appreciate', 'support', 'win', 'future', 'together']),
       isComplete:false
     },
   ];
