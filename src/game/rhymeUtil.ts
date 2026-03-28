@@ -70,6 +70,9 @@ function _normalizeSuffix(suffix:string):string {
     .replace(/ow$/, 'o')
     .replace(/oak$/, 'oke')
     .replace(/oan$/, 'one')
+    // /ɔːk/ sounds — talk, walk, hawk, squawk
+    .replace(/uawk$/, 'awk')
+    .replace(/alk$/, 'awk')
     // Silent-b normalizations (longer patterns first)
     .replace(/imb$/, 'ime')
     .replace(/mb$/, 'm')
