@@ -19,6 +19,9 @@ import { DEFAULT_HAPPINESS } from "@/game/happinessUtil";
 import ToastPane from "@/components/toasts/ToastPane";
 import CardHandBox from "@/components/cardHandBox/CardHandBox";
 import Deck from "@/game/types/cards/Deck";
+import LevelResults from "@/game/types/LevelResults";
+import LevelEndDialog from "./dialogs/LevelEndDialog";
+import { getNextLevelId } from "@/game/levelFileUtil";
   
 function HomeScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -28,13 +31,19 @@ function HomeScreen() {
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [audienceMembers, setAudienceMembers] = useState<AudienceMember[]>([]);
   const [levelId, setLevelId] = useState<string|null>(null);
+  const [isLevelComplete, setIsLevelComplete] = useState<boolean>(false);
   const [averageHappiness, setAverageHappiness] = useState<number>(DEFAULT_HAPPINESS);
   const [deck, setDeck] = useState<Deck|null>(null);
+
+  function _onEndLevel(levelResults:LevelResults) {
+    setIsLevelComplete(levelResults.isComplete);
+    setModalDialogName(LevelEndDialog.name);
+  }
   
   useEffect(() => {
     if (isLoading) return;
 
-    init(setRecentPrompts, setAverageHappiness, setDeck).then(initResults => { 
+    init(setRecentPrompts, setAverageHappiness, setDeck, _onEndLevel).then(initResults => { 
       if (!initResults) { setIsLoading(true); return; }
       setCharacterSpriteset(initResults.characterSpriteset);
       setLevelId(initResults.levelId);
@@ -69,9 +78,15 @@ function HomeScreen() {
         onClose={() => setModalDialogName(null)}
       />
       <MicrophonePermissionDialog
-        isOpen={modalDialogName === 'MicrophonePermissionDialog'}
+        isOpen={modalDialogName === MicrophonePermissionDialog.name}
         onApprove={() => enableSpeechAfterDialog(setModalDialogName, setIsSpeechEnabled)}
         onCancel={() => setModalDialogName(null)}
+      />
+      <LevelEndDialog
+        isOpen={modalDialogName === LevelEndDialog.name}
+        isComplete={isLevelComplete}
+        onRetryLevel={async () => { await startLevel(levelId!, setAudienceMembers); setModalDialogName(null); }}
+        onNextLevel={async () => { const nextLevelId = await getNextLevelId(levelId!); await startLevel(nextLevelId, setAudienceMembers); setLevelId(nextLevelId); setModalDialogName(null); }}
       />
 
       <ToastPane />

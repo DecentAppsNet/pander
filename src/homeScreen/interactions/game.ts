@@ -1,7 +1,7 @@
 import { setHappiness } from "@/components/audienceView/audienceEventUtil";
 import { DeckChangedCallback } from "@/game/deckUtil";
 import GameSession from "@/game/GameSession";
-import { AverageHappinessChangeCallback } from "@/game/happinessUtil";
+import { AverageHappinessChangeCallback, EndLevelCallback } from "@/game/happinessUtil";
 import { getDefaultLevelId } from "@/game/levelFileUtil";
 import GameSessionSettings from "@/game/types/GameSettings";
 import { appendRecentPrompt } from "@/persistence/recentPrompts";
@@ -14,13 +14,13 @@ let theLastMessageIncoherent:boolean = false;
 export const DEFAULT_TURN_DURATION = 30000;
 
 export async function initGame(onSetRecentPrompts:Function, setAverageHappiness:AverageHappinessChangeCallback, 
-    onDeckChanged:DeckChangedCallback):Promise<string> {
+    onDeckChanged:DeckChangedCallback, onEndLevel:EndLevelCallback):Promise<string> {
   theOnSetRecentPrompts = onSetRecentPrompts;
   function _setHappiness(characterId:string, happiness:number) {
     if (!theLastMessageIncoherent) setHappiness(characterId, happiness);
   }
   const gameSessionSettings:GameSessionSettings = { turnDuration:DEFAULT_TURN_DURATION };
-  theGameSession = new GameSession(gameSessionSettings, _setHappiness, setAverageHappiness, onDeckChanged);
+  theGameSession = new GameSession(gameSessionSettings, _setHappiness, setAverageHappiness, onDeckChanged, onEndLevel);
   const levelId = await getDefaultLevelId();
   return levelId;
 }

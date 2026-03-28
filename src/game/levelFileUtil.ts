@@ -54,3 +54,13 @@ export async function getDefaultLevelId():Promise<string> {
   }
   throw new Error('No levels defined in levels.md.');
 }
+
+export async function getNextLevelId(levelId:string):Promise<string> {
+  const levelIds = await getLevelIds();
+  let i = 0;
+  for(; i < levelIds.length; ++i) {
+    if (levelIds[i] === levelId) break;
+  }
+  if (++i >= levelIds.length) i = 0; // Covering wrap-around and not-found cases.
+  return levelIds[i];
+}

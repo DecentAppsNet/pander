@@ -4,6 +4,7 @@ import AudienceMember from "./types/AudienceMember";
 import { clamp, isClose } from "@/common/mathUtil";
 import HappinessChange from "./types/HappinessChange";
 import { promptToUniqueWords, WordCooldownFactorCallback } from "./wordAnalysisUtil";
+import LevelResults from "./types/LevelResults";
 
 export const DEFAULT_HAPPINESS = .5;
 const LOVE_BUMP = .2;
@@ -14,6 +15,7 @@ const HATE_BUMP = -.2;
 export type SetHappinessCallback = (characterId:string, happiness:number) => void;
 export type FindHappinessChangeCallback = (playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback) => Promise<number>;
 export type AverageHappinessChangeCallback = (happiness:number) => void;
+export type EndLevelCallback = (levelResults:LevelResults) => void;
 
 function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], characterId:string):AudienceMember|null {
   return audienceMembers.find(am => am.characterId === characterId) || null;
@@ -78,4 +80,10 @@ export function applyHappinessChanges(averageHappiness:number, happinessChanges:
   const nextAverageHappiness = calcAverageHappiness(audienceMembers);
   if (!isClose(averageHappiness, nextAverageHappiness)) onAverageHappinessChange(nextAverageHappiness);
   return nextAverageHappiness;
+}
+
+export function getLevelResults(audienceMembers:AudienceMember[]):LevelResults {
+  const averageHappiness = calcAverageHappiness(audienceMembers);
+  const isComplete = averageHappiness >= .8;
+  return { isComplete, finalHappiness:averageHappiness };
 }

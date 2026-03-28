@@ -1,5 +1,5 @@
 import { isClose } from "@/common/mathUtil";
-import { applyHappinessChanges, AverageHappinessChangeCallback, calcAverageHappiness, DEFAULT_HAPPINESS, FindHappinessChangeCallback, findHappinessChangeDefault, findHappinessChangesForAudience, nameToHappinessFunction, SetHappinessCallback } from "./happinessUtil";
+import { applyHappinessChanges, AverageHappinessChangeCallback, calcAverageHappiness, DEFAULT_HAPPINESS, EndLevelCallback, FindHappinessChangeCallback, findHappinessChangeDefault, findHappinessChangesForAudience, getLevelResults, nameToHappinessFunction, SetHappinessCallback } from "./happinessUtil";
 import { loadLevel } from "./levelFileUtil";
 import AudienceMember from "./types/AudienceMember"
 import Level, { duplicateLevel } from "./types/Level";
@@ -9,10 +9,12 @@ import { createSomeStupidDeck, DeckChangedCallback, isEndOfDeck, updateCardFromP
 import Deck, { duplicateDeck } from "./types/cards/Deck";
 import GameSessionSettings from "./types/GameSettings";
 import { assertNonNullable } from "decent-portal";
+import LevelResults from "./types/LevelResults";
 
 const _setHappinessNoOp:SetHappinessCallback = (_c:string, _h:number) => { console.warn('setHappiness() not bound in game session.'); }
 const _averageHappinessChangeNoOp:AverageHappinessChangeCallback = (_h:number) => { console.warn('onAverageHappinessChange() not bound in game session.'); } 
 const _deckChangedNoOp:DeckChangedCallback = (_d:Deck) => { console.warn('onDeckChanged() not bound in game session.'); }
+const _endLevelNoOp:EndLevelCallback = (_lr:LevelResults) => { console.warn('onEndLevel() not bound in game session.'); }
 
 /*
  The GameSession instance handles loading levels and updating game state in response to player commands. It is strictly 
@@ -28,6 +30,7 @@ class GameSession {
   private _onFindHappinessChange:FindHappinessChangeCallback = findHappinessChangeDefault;
   private _onAverageHappinessChange:AverageHappinessChangeCallback = _averageHappinessChangeNoOp;
   private _onDeckChanged:DeckChangedCallback = _deckChangedNoOp;
+  private _onEndLevel:EndLevelCallback = _endLevelNoOp;
   private _findHappinessFunctions:FindHappinessChangeCallback[] = [];
   private _averageHappiness:number = DEFAULT_HAPPINESS;
   private _wordUsageHistory:WordUsageHistory = {};
@@ -35,10 +38,11 @@ class GameSession {
   private _settings:GameSessionSettings;
   private _turnTimer:NodeJS.Timeout|null = null;
 
-  constructor(settings:GameSessionSettings, onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, onDeckChanged:DeckChangedCallback) {
+  constructor(settings:GameSessionSettings, onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, onDeckChanged:DeckChangedCallback, onEndLevel:EndLevelCallback = _endLevelNoOp) {
     this._onSetHappiness = onSetHappiness;
     this._onAverageHappinessChange = onAverageHappinessChange;
     this._onDeckChanged = onDeckChanged;
+    this._onEndLevel = onEndLevel;
     this._settings = settings;
   }
 
@@ -52,7 +56,12 @@ class GameSession {
       clearTimeout(this._turnTimer);
       this._turnTimer = null;
     }
-    if (!isEndOfDeck(this._deck)) this._turnTimer = setTimeout(() => this._goNextCard(), this._settings.turnDuration);
+    if (isEndOfDeck(this._deck)) {
+      const levelResults = getLevelResults(this._audienceMembers);
+      this._onEndLevel(levelResults);
+    } else {
+      this._turnTimer = setTimeout(() => this._goNextCard(), this._settings.turnDuration);
+    }
   }
 
   // Loads a level and sets session state to begin playing in it.
