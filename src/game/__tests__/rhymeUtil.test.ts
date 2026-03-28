@@ -102,6 +102,16 @@ describe('doesRhyme', () => {
     expect(doesRhyme('part', 'heart')).toBe(true);
   });
 
+  it('handles irregular ea words (great, break, steak)', () => {
+    expect(doesRhyme('great', 'bait')).toBe(true);
+    expect(doesRhyme('great', 'hate')).toBe(true);
+    expect(doesRhyme('great', 'late')).toBe(true);
+    expect(doesRhyme('break', 'fake')).toBe(true);
+    expect(doesRhyme('break', 'make')).toBe(true);
+    expect(doesRhyme('steak', 'fake')).toBe(true);
+    expect(doesRhyme('great', 'beat')).toBe(false);
+  });
+
   it('handles silent-b words', () => {
     expect(doesRhyme('climb', 'dime')).toBe(true);
     expect(doesRhyme('climb', 'time')).toBe(true);
