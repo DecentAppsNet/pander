@@ -18,6 +18,9 @@ public/.vite
 # Be careful about deleting this line below. Very easy to accidentally expose some secrets used in environment variables by committing the .env file.
 .env
 
+# Claude Code
+.claude/settings.local.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

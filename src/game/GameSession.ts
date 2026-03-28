@@ -5,7 +5,7 @@ import AudienceMember from "./types/AudienceMember"
 import Level, { duplicateLevel } from "./types/Level";
 import WordUsageHistory from "./types/WordUsageHistory";
 import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallback } from "./wordAnalysisUtil";
-import { createSomeStupidDeck, DeckChangedCallback, isEndOfDeck, updateCardFromPrompt } from "./deckUtil";
+import { createDeck, DeckChangedCallback, isEndOfDeck, updateCardFromPrompt } from "./deckUtil";
 import Deck, { duplicateDeck } from "./types/cards/Deck";
 import GameSessionSettings from "./types/GameSettings";
 import { assertNonNullable } from "decent-portal";
@@ -72,7 +72,7 @@ class GameSession {
     const prevAverageHappiness = this._averageHappiness;
     this._averageHappiness = calcAverageHappiness(this._audienceMembers);
     this._wordUsageHistory = {};
-    this._deck = createSomeStupidDeck();
+    this._deck = createDeck(level.tellaStyle);
     this._onDeckChanged(this._deck);
     if (!isClose(prevAverageHappiness, this._averageHappiness)) this._onAverageHappinessChange(this._averageHappiness);
     return duplicateLevel(level);

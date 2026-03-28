@@ -7,6 +7,7 @@ import { baseUrl } from "@/common/urlUtil";
 import Level from "./types/Level";
 import { loadAudienceMember } from "./characterFileUtil";
 import AudienceMember from "./types/AudienceMember";
+import TellaStyle from "./types/TellaStyle";
 
 async function _getLevelsText():Promise<string> {
   const response = await fetch(baseUrl('/levels/levels.md'));
@@ -27,7 +28,11 @@ export async function loadLevel(levelId:string):Promise<Level> {
   if (!levelSection) throw Error(`Did not find "${levelId}" section in levels.md`);
   const nameValuePairs = parseNameValueLines(levelSection);
 
-  const level:Level = { audienceMembers:[], happinessFunctionName:nameValuePairs.happinessFunction || null };
+  const tellaStyleValue = nameValuePairs.tellaStyle || '';
+  const tellaStyle:TellaStyle = Object.values(TellaStyle).includes(tellaStyleValue as TellaStyle)
+    ? tellaStyleValue as TellaStyle
+    : TellaStyle.Speech;
+  const level:Level = { audienceMembers:[], happinessFunctionName:nameValuePairs.happinessFunction || null, tellaStyle };
   const characterIds = Object.keys(nameValuePairs);
   for(let i = 0; i < characterIds.length; ++i) {
     const characterId = characterIds[i];

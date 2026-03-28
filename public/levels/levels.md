@@ -21,11 +21,18 @@ And you'd bind your custom function to the GameSession instance with code like:
 
 Then when `gameSession.startLevel('Your Level')` is called, the custom happiness function will be used to make updates to happiness.
 
+You can also set the play style for a level with `tellaStyle`. Available styles are:
+- `speech` (default) — player must say exact keywords shown on each card
+- `og` — gangsta rap mode where the player must say words that rhyme with the targets shown on each card
+
+Example: `* tellaStyle=og`
+
 # At The Library
 
 * Librarian=8
 * Clown=1
 * Hodler=1
+* tellaStyle=speech
 
 # Middling Crowd
 
@@ -52,6 +59,15 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Mogger=8
 * Artist=6
 * Hodler=5
+
+# Block Party
+
+* Jock=15
+* Clown=10
+* Barber=20
+* Mogger=15
+* Artist=10
+* tellaStyle=og
 
 # Stadium Rally
 
