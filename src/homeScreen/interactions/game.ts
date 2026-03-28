@@ -5,7 +5,8 @@ import { AverageHappinessChangeCallback, EndLevelCallback } from "@/game/happine
 import { getDefaultLevelId } from "@/game/levelFileUtil";
 import GameSessionSettings from "@/game/types/GameSettings";
 import { appendRecentPrompt } from "@/persistence/recentPrompts";
-import { assertNonNullable, infoToast } from "decent-portal";
+import { assertNonNullable } from "decent-portal";
+import { infoToast } from "@/components/toasts/toastUtil";
 
 let theOnSetRecentPrompts:Function|null = null;
 let theGameSession:GameSession|null = null;

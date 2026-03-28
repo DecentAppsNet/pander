@@ -11,9 +11,10 @@ import {MutableRefObject, useEffect, useRef, useState} from "react";
 
 type TrackedToast = Toast & {
   id:number,
-  state:ToastState, 
+  state:ToastState,
   lastStateTime:number,
-  requiresDismissing:boolean
+  requiresDismissing:boolean,
+  multiplier:number
 }
 
 let toastIdCounter = 0;
@@ -26,9 +27,17 @@ const DISAPPEAR_DURATION_MSECS = 1000;
 function _trackNewToast(toastsRef:MutableRefObject<TrackedToast[]>, newToast:Toast) {
   const oldToasts = toastsRef.current;
   const now = Date.now();
+  // If the most recent visible toast has the same message, bump its multiplier instead of adding a new one.
+  const lastToast = oldToasts.length > 0 ? oldToasts[oldToasts.length - 1] : null;
+  if (lastToast && lastToast.message === newToast.message && lastToast.state !== ToastState.DISAPPEARING && lastToast.state !== ToastState.GONE) {
+    toastsRef.current = oldToasts.map(t => t === lastToast
+      ? {...t, multiplier: t.multiplier + 1, lastStateTime: now, state: ToastState.APPEARING}
+      : t);
+    return;
+  }
   const id = ++toastIdCounter;
   const requiresDismissing = doesToastTypeRequireDismissing(newToast.type);
-  const newTrackedToast = {...newToast, state:ToastState.APPEARING, lastStateTime:now, id, requiresDismissing};
+  const newTrackedToast = {...newToast, state:ToastState.APPEARING, lastStateTime:now, id, requiresDismissing, multiplier:1};
   toastsRef.current = [...oldToasts, newTrackedToast];
 }
 
@@ -87,7 +96,7 @@ function ToastPane() {
   }, [frameNo, setFrameNo]);
   
   const renderedToasts = toastsRef.current.map((toast) => (
-    <ToastMessage toast={toast} toastState={toast.state} key={toast.id} onDismiss={() => _dismissToast(toast.id, toastsRef)}/>
+    <ToastMessage toast={toast} toastState={toast.state} multiplier={toast.multiplier} key={toast.id} onDismiss={() => _dismissToast(toast.id, toastsRef)}/>
   ));
   return (
     <div className={styles.container}>

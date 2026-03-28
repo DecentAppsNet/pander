@@ -5,7 +5,8 @@ import {doesToastTypeRequireDismissing} from "./toastUtil";
 interface IProps {
   onDismiss:() => void,
   toast:Toast,
-  toastState:ToastState
+  toastState:ToastState,
+  multiplier:number
 }
 
 function _getContainerStyleForType(type:ToastType):string {
@@ -25,14 +26,15 @@ function _getAnimationStyleForState(state:ToastState):string {
 }
 
 function ToastMessage(props:IProps) {
-  const {onDismiss, toast, toastState} = props;
+  const {onDismiss, toast, toastState, multiplier} = props;
   const {message, type} = toast;
   const showDismissIcon = doesToastTypeRequireDismissing(type);
-  
+
   const containerStyle = `${_getContainerStyleForType(type)} ${_getAnimationStyleForState(toastState)}`;
   const dismissIcon = showDismissIcon ? <div className={styles.dismissIcon} onClick={onDismiss}>✖</div> : null;
-  
-  return <div className={containerStyle} onClick={onDismiss}><p>{message}</p>{dismissIcon}</div>;
+  const multiplierBadge = multiplier > 1 ? <span className={styles.multiplier}>x{multiplier}</span> : null;
+
+  return <div className={containerStyle} onClick={onDismiss}><p>{message}{multiplierBadge}</p>{dismissIcon}</div>;
 }
 
 export default ToastMessage;

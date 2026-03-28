@@ -58,6 +58,13 @@
     animation-fill-mode: forwards;
 }
 
+.multiplier {
+    margin-left: .75rem;
+    font-weight: bold;
+    font-size: 1.2em;
+    opacity: .7;
+}
+
 .dismissIcon {
     float: right;
     margin-right: -2rem;
