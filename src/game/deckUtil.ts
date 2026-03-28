@@ -16,6 +16,7 @@ export type DeckChangedCallback = (deck:Deck) => void;
 export type UpdateCardChanges = {
   didCardChange:boolean;
   happinessChanges:HappinessChange[];
+  scoreEarned:number;
 }
 
 function _nextKey():string {
@@ -103,7 +104,7 @@ function _createSpeechDeck():Deck {
       isComplete:false
     },
   ];
-  return { cards, activeCardNo:0 };
+  return { cards, activeCardNo:0, score:0 };
 }
 
 function _createOGDeck():Deck {
@@ -173,7 +174,7 @@ function _createOGDeck():Deck {
       isComplete:false
     },
   ];
-  return { cards, activeCardNo:0 };
+  return { cards, activeCardNo:0, score:0 };
 }
 
 // Just use this function to create a deck for now. Wait for the dust to settle before making a clean data-driven approach.
@@ -194,16 +195,19 @@ function _updateTopicCardFromPrompt(playerText:string, card:TopicCard):UpdateCar
   const words = promptToUniqueWords(playerText);
   const matchFn = _activeTellaStyle === TellaStyle.OG ? _matchesRhyme : _matchesKeyword;
   let didCardChange = false;
+  let scoreEarned = 0;
   for(let i = 0; i < card.keywordGoals.length; ++i) {
     const kg = card.keywordGoals[i];
     if (kg.isComplete) continue;
-    if (words.some(word => matchFn(word, kg.keyword))) {
+    const matchingWord = words.find(word => matchFn(word, kg.keyword));
+    if (matchingWord) {
       didCardChange = true;
       kg.isComplete = true;
+      scoreEarned += matchingWord.length;
     }
   }
   if (didCardChange && card.keywordGoals.every(kg => kg.isComplete)) card.isComplete = true;
-  return {didCardChange, happinessChanges:[]};
+  return {didCardChange, happinessChanges:[], scoreEarned};
 }
 
 const cardTypeToUpdateFunction = {

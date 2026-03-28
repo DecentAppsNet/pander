@@ -2,13 +2,15 @@ import Card, { duplicateCard } from "./Card";
 
 type Deck = {
   cards:Card[];
-  activeCardNo:number
+  activeCardNo:number;
+  score:number;
 }
 
 export function duplicateDeck(from:Deck):Deck {
   return {
     cards: from.cards.map(duplicateCard),
-    activeCardNo: from.activeCardNo
+    activeCardNo: from.activeCardNo,
+    score: from.score
   }
 }
 

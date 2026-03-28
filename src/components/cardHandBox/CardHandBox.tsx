@@ -75,6 +75,7 @@ function CardHandBox({ deck }: Props) {
         </div>
       </div>
       <div className={styles.deckInfo}>
+        <div className={styles.score}>{currentDeck.score}</div>
         <div className={styles.deckCount}>
           {deckCountText}
         </div>

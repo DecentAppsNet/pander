@@ -55,6 +55,7 @@ export function onUpdateCoherence(coherence:number) {
   theLastMessageIncoherent = coherence < COHERENCE_THRESHOLD;
   if (theLastMessageIncoherent) {
     infoToast('Audience is confused. Speak in full sentences.');
+    if (theGameSession) theGameSession.penalizeScore();
   } else if (wasAudienceConfused) {
     infoToast('Audience is no longer confused.');
   }

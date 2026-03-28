@@ -34,7 +34,7 @@ class GameSession {
   private _findHappinessFunctions:FindHappinessChangeCallback[] = [];
   private _averageHappiness:number = DEFAULT_HAPPINESS;
   private _wordUsageHistory:WordUsageHistory = {};
-  private _deck:Deck = { cards:[], activeCardNo: 0 };
+  private _deck:Deck = { cards:[], activeCardNo: 0, score: 0 };
   private _settings:GameSessionSettings;
   private _turnTimer:NodeJS.Timeout|null = null;
 
@@ -84,7 +84,8 @@ class GameSession {
     let happinessChanges = await findHappinessChangesForAudience(playerText, this._audienceMembers, 
         this._onFindHappinessChange, onWordCooldownFactor);
     updateWordUsageHistory(playerText, this._wordUsageHistory);
-    const { didCardChange, happinessChanges: cardHappinessChanges } = updateCardFromPrompt(playerText, this._deck.cards[this._deck.activeCardNo]);
+    const { didCardChange, happinessChanges: cardHappinessChanges, scoreEarned } = updateCardFromPrompt(playerText, this._deck.cards[this._deck.activeCardNo]);
+    if (scoreEarned > 0) this._deck.score += scoreEarned;
     if (didCardChange) this._onDeckChanged(duplicateDeck(this._deck));
     if (cardHappinessChanges.length > 0) happinessChanges = happinessChanges.concat(cardHappinessChanges);
     this._averageHappiness = applyHappinessChanges(this._averageHappiness, happinessChanges, this._audienceMembers, 
@@ -95,6 +96,11 @@ class GameSession {
   async onStopTalking() {
     if (isEndOfDeck(this._deck)) return;
     if (this._deck.cards[this._deck.activeCardNo].isComplete) this._goNextCard();
+  }
+
+  penalizeScore(amount:number = 1) {
+    this._deck.score -= amount;
+    this._onDeckChanged(duplicateDeck(this._deck));
   }
 
   /* Can be used to make custom happiness functions available for individual levels that override the default happiness function

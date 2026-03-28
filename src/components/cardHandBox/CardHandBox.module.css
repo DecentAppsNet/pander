@@ -87,6 +87,13 @@
   justify-content: flex-end;
 }
 
+.score {
+  font-size: 2.5vh;
+  font-weight: bold;
+  color: #e9c5a7;
+  text-align: center;
+}
+
 .deckCount {
   margin-top: .8vh;
   font-size: 1.5vh;
