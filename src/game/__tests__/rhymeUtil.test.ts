@@ -108,6 +108,13 @@ describe('doesRhyme', () => {
     expect(doesRhyme('stone', 'zone')).toBe(true);
   });
 
+  it('handles alk/awk sounds (talk, hawk, squawk)', () => {
+    expect(doesRhyme('talk', 'squawk')).toBe(true);
+    expect(doesRhyme('talk', 'hawk')).toBe(true);
+    expect(doesRhyme('walk', 'squawk')).toBe(true);
+    expect(doesRhyme('chalk', 'stalk')).toBe(true);
+  });
+
   it('handles OO/ew/ou sound variations', () => {
     expect(doesRhyme('you', 'true')).toBe(true);
     expect(doesRhyme('you', 'crew')).toBe(true);
