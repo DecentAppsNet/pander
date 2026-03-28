@@ -42,8 +42,13 @@ function _normalizeSuffix(suffix:string):string {
     .replace(/eign$/, 'ain')
     .replace(/ein$/, 'ain')
     .replace(/ane$/, 'ain')
+    .replace(/ade$/, 'aid')
     .replace(/ate$/, 'ait')
     .replace(/ame$/, 'aim')
+    .replace(/aze$/, 'ais')
+    .replace(/ake$/, 'aik')
+    .replace(/ale$/, 'ail')
+    .replace(/ave$/, 'aiv')
     // Long-E (/iː/) — beat, real, mean, dream, green, seen, feel
     .replace(/eart$/, 'art')
     .replace(/ea([a-z]*)$/, 'ee$1')

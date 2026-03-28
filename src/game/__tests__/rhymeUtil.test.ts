@@ -59,9 +59,19 @@ describe('doesRhyme', () => {
     expect(doesRhyme('lame', 'fame')).toBe(true);
   });
 
+  it('handles long-A silent-e variations', () => {
+    expect(doesRhyme('raid', 'shade')).toBe(true);
+    expect(doesRhyme('paid', 'made')).toBe(true);
+    expect(doesRhyme('lake', 'break')).toBe(true);
+    expect(doesRhyme('tale', 'mail')).toBe(true);
+    expect(doesRhyme('cave', 'wave')).toBe(true);
+  });
+
   it('does not cross-match different long-A endings', () => {
     expect(doesRhyme('reign', 'game')).toBe(false);
     expect(doesRhyme('hate', 'rain')).toBe(false);
+    expect(doesRhyme('shade', 'hate')).toBe(false);
+    expect(doesRhyme('raid', 'rain')).toBe(false);
   });
 
   it('handles long-E spelling variations', () => {
