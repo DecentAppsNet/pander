@@ -126,6 +126,11 @@ describe('doesRhyme', () => {
     expect(doesRhyme('climb', 'slim')).toBe(false);
   });
 
+  it('treats y as consonant at start of word', () => {
+    expect(doesRhyme('yard', 'charred')).toBe(true);
+    expect(doesRhyme('yard', 'hard')).toBe(true);
+  });
+
   it('matches single and double trailing consonants', () => {
     expect(doesRhyme('daffodil', 'grill')).toBe(true);
     expect(doesRhyme('hill', 'fill')).toBe(true);
