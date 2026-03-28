@@ -19,7 +19,9 @@ function _rhymeSuffix(word:string):string {
   // Walk backwards to find the last vowel-consonant boundary
   let lastVowelStart = -1;
   for (let i = stripped.length - 1; i >= 0; i--) {
-    if (VOWELS.has(stripped[i])) {
+    // 'y' at position 0 acts as a consonant (e.g. "yard"), not a vowel
+    const isVowel = i === 0 ? (stripped[i] !== 'y' && VOWELS.has(stripped[i])) : VOWELS.has(stripped[i]);
+    if (isVowel) {
       lastVowelStart = i;
     } else if (lastVowelStart !== -1) {
       break;
