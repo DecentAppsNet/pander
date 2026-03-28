@@ -156,6 +156,12 @@ describe('doesRhyme', () => {
     expect(doesRhyme('climb', 'slim')).toBe(false);
   });
 
+  it('handles qu as consonant digraph', () => {
+    expect(doesRhyme('quick', 'slick')).toBe(true);
+    expect(doesRhyme('quick', 'thick')).toBe(true);
+    expect(doesRhyme('quake', 'lake')).toBe(true);
+  });
+
   it('treats y as consonant at start of word', () => {
     expect(doesRhyme('yard', 'charred')).toBe(true);
     expect(doesRhyme('yard', 'hard')).toBe(true);

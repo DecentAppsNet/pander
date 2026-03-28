@@ -11,8 +11,10 @@ const _IRREGULAR_EA:Record<string, string> = {
 // Find the rhyme nucleus: from the last stressed vowel cluster onward.
 // e.g. "street" → "eet", "money" → "oney", "gat" → "at", "side" → "ide"
 function _rhymeSuffix(word:string):string {
-  // Collapse doubled-consonant+"ed" past tenses (e.g. "charred"→"chard", "grilled"→"grild")
-  const w = (_IRREGULAR_EA[word.toLowerCase()] ?? word.toLowerCase()).replace(/([^aeiou])\1ed$/, '$1d');
+  // Normalize word before suffix extraction
+  const w = (_IRREGULAR_EA[word.toLowerCase()] ?? word.toLowerCase())
+    .replace(/qu/g, 'q')              // treat "qu" as consonant (quick→qick)
+    .replace(/([^aeiou])\1ed$/, '$1d'); // collapse doubled-consonant+"ed" past tenses (charred→chard)
   // Strip trailing silent 'e' for words like "side", "make", "pride"
   // but not for words where 'e' is the actual vowel sound (e.g. "be", "me")
   const stripped = (w.length >= 3 && w.endsWith('e') && !VOWELS.has(w[w.length - 2]))
