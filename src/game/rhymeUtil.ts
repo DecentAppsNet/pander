@@ -46,6 +46,7 @@ function _normalizeSuffix(suffix:string):string {
     .replace(/ate$/, 'ait')
     .replace(/ame$/, 'aim')
     .replace(/aze$/, 'ais')
+    .replace(/ays$/, 'ais')
     .replace(/ake$/, 'aik')
     .replace(/ale$/, 'ail')
     .replace(/ave$/, 'aiv')

@@ -65,6 +65,8 @@ describe('doesRhyme', () => {
     expect(doesRhyme('lake', 'break')).toBe(true);
     expect(doesRhyme('tale', 'mail')).toBe(true);
     expect(doesRhyme('cave', 'wave')).toBe(true);
+    expect(doesRhyme('blaze', 'days')).toBe(true);
+    expect(doesRhyme('craze', 'plays')).toBe(true);
   });
 
   it('does not cross-match different long-A endings', () => {
