@@ -96,6 +96,13 @@ describe('doesRhyme', () => {
     expect(doesRhyme('stone', 'zone')).toBe(true);
   });
 
+  it('handles OO/ew/ou sound variations', () => {
+    expect(doesRhyme('you', 'true')).toBe(true);
+    expect(doesRhyme('you', 'crew')).toBe(true);
+    expect(doesRhyme('true', 'crew')).toBe(true);
+    expect(doesRhyme('blue', 'too')).toBe(true);
+  });
+
   it('handles heart/cart (eart→art)', () => {
     expect(doesRhyme('cart', 'heart')).toBe(true);
     expect(doesRhyme('start', 'heart')).toBe(true);

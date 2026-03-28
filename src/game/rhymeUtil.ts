@@ -70,9 +70,11 @@ function _normalizeSuffix(suffix:string):string {
     // Consonant normalizations
     .replace(/ph$/, 'f')
     .replace(/ck$/, 'k')
-    // OO sounds
+    // OO/ew/ou sounds (/uː/) — you, true, crew, too, blue
     .replace(/ool$/, 'uel')
     .replace(/oo$/, 'ue')
+    .replace(/ou$/, 'ue')
+    .replace(/ew$/, 'ue')
     // Collapse trailing double consonants (grill→gril, buzz→buz)
     .replace(/([^aeiou])\1$/, '$1');
 }
