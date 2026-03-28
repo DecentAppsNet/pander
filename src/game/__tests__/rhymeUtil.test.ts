@@ -108,6 +108,10 @@ describe('doesRhyme', () => {
     expect(doesRhyme('stone', 'zone')).toBe(true);
   });
 
+  it('handles broad/fraud (oad→aud)', () => {
+    expect(doesRhyme('broad', 'fraud')).toBe(true);
+  });
+
   it('handles alk/awk sounds (talk, hawk, squawk)', () => {
     expect(doesRhyme('talk', 'squawk')).toBe(true);
     expect(doesRhyme('talk', 'hawk')).toBe(true);
