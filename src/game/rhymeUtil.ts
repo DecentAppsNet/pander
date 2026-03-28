@@ -69,7 +69,9 @@ function _normalizeSuffix(suffix:string):string {
     .replace(/ck$/, 'k')
     // OO sounds
     .replace(/ool$/, 'uel')
-    .replace(/oo$/, 'ue');
+    .replace(/oo$/, 'ue')
+    // Collapse trailing double consonants (grill→gril, buzz→buz)
+    .replace(/([^aeiou])\1$/, '$1');
 }
 
 export function doesRhyme(word:string, target:string):boolean {

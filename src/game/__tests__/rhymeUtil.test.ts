@@ -125,4 +125,11 @@ describe('doesRhyme', () => {
   it('does not false-match silent-b across vowel sounds', () => {
     expect(doesRhyme('climb', 'slim')).toBe(false);
   });
+
+  it('matches single and double trailing consonants', () => {
+    expect(doesRhyme('daffodil', 'grill')).toBe(true);
+    expect(doesRhyme('hill', 'fill')).toBe(true);
+    expect(doesRhyme('buzz', 'fuzz')).toBe(true);
+    expect(doesRhyme('pass', 'grass')).toBe(true);
+  });
 });
