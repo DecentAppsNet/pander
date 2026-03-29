@@ -2,13 +2,13 @@ import AudienceMember, { duplicateAudienceMember } from "./AudienceMember"
 
 type Level = {
   audienceMembers:AudienceMember[],
-  happinessFunctionName:string|null
+  cardIds:string[]
 };
 
 export function duplicateLevel(level:Level):Level {
   return {
     audienceMembers: level.audienceMembers.map(duplicateAudienceMember),
-    happinessFunctionName: level.happinessFunctionName
+    cardIds:[...level.cardIds]
   }
 }
 

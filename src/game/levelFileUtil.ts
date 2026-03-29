@@ -20,6 +20,12 @@ export async function getLevelIds():Promise<string[]> {
   return sectionNames;
 }
 
+function _parseCardNames(cardsValue?:string):string[] {
+  if (!cardsValue) return [];
+  return cardsValue.split('|').map(t => t.trim()).filter(t => t.length > 0);
+}
+
+const LEVEL_RESERVED_NAMES = ['cards']; // Non-reserved names are meant to match to character IDs.
 export async function loadLevel(levelId:string):Promise<Level> {
   const levelsText = await _getLevelsText();
   const sections = parseSections(levelsText);
@@ -27,10 +33,13 @@ export async function loadLevel(levelId:string):Promise<Level> {
   if (!levelSection) throw Error(`Did not find "${levelId}" section in levels.md`);
   const nameValuePairs = parseNameValueLines(levelSection);
 
-  const level:Level = { audienceMembers:[], happinessFunctionName:nameValuePairs.happinessFunction || null };
+  const cardIds = _parseCardNames(nameValuePairs.cards);
+
+  const level:Level = { audienceMembers:[], cardIds };
   const characterIds = Object.keys(nameValuePairs);
   for(let i = 0; i < characterIds.length; ++i) {
     const characterId = characterIds[i];
+    if (LEVEL_RESERVED_NAMES.includes(characterId)) continue;
     try {
       const audienceMember:AudienceMember = await loadAudienceMember(characterId);
       audienceMember.count = parseInt(nameValuePairs[characterId]);

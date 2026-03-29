@@ -5,7 +5,7 @@ import { AverageHappinessChangeCallback, EndLevelCallback } from "@/game/happine
 import { getDefaultLevelId } from "@/game/levelFileUtil";
 import GameSessionSettings from "@/game/types/GameSettings";
 import { appendRecentPrompt } from "@/persistence/recentPrompts";
-import { assertNonNullable, infoToast } from "decent-portal";
+import { assertNonNullable } from "decent-portal";
 
 let theOnSetRecentPrompts:Function|null = null;
 let theGameSession:GameSession|null = null;
@@ -30,7 +30,7 @@ export async function promptFromChatInput(playerText:string) {
   if (theOnSetRecentPrompts) theOnSetRecentPrompts(recentPrompts);
   if (theGameSession) {
     await theGameSession.prompt(playerText);
-    await theGameSession.onStopTalking();
+    await theGameSession.onStopTalking(playerText);
   }
 }
 
@@ -38,23 +38,12 @@ export async function promptFromSpeech(playerText:string) {
   if (theGameSession) theGameSession.prompt(playerText);
 }
 
-export async function onStopTalking() {
-  if (theGameSession) await theGameSession.onStopTalking();
+export async function onStopTalking(playerText:string) {
+  if (theGameSession) await theGameSession.onStopTalking(playerText);
 }
 
 export async function startLevel(levelId:string, setAudienceMembers:Function) {
   assertNonNullable(theGameSession);
   const level = await theGameSession.startLevel(levelId);
   setAudienceMembers(level.audienceMembers);
-}
-
-const COHERENCE_THRESHOLD = .6;
-export function onUpdateCoherence(coherence:number) {
-  const wasAudienceConfused = theLastMessageIncoherent;
-  theLastMessageIncoherent = coherence < COHERENCE_THRESHOLD;
-  if (theLastMessageIncoherent) {
-    infoToast('Audience is confused. Speak in full sentences.');
-  } else if (wasAudienceConfused) {
-    infoToast('Audience is no longer confused.');
-  }
 }

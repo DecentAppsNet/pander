@@ -88,11 +88,11 @@ export async function connect(modelId: string, onStatusUpdate: StatusUpdateCallb
   theConnection.state = LLMConnectionState.READY;
 }
 
-export async function generate(messages: LLMMessages, onStatusUpdate: StatusUpdateCallback): Promise<string> {
+export async function generate(messages: LLMMessages, onStatusUpdate?: StatusUpdateCallback): Promise<string> {
   let firstResponseTime = 0;
-  function _captureFirstResponse(status: string, percentComplete: number) {
+  function _onPartialResponse(status: string, percentComplete: number) {
     if (!firstResponseTime) firstResponseTime = Date.now();
-    onStatusUpdate(status, percentComplete);
+    if (onStatusUpdate) onStatusUpdate(status, percentComplete);
   }
   assert(messages.chatHistory.length > 0);
   if (!isLlmConnected()) throw Error('LLM connection is not initialized.');
@@ -101,9 +101,9 @@ export async function generate(messages: LLMMessages, onStatusUpdate: StatusUpda
   let message = '';
   let requestTime = Date.now();
   switch (theConnection.connectionType) {
-    case LLMConnectionType.WEBLLM: message = await webLlmGenerate(theConnection, messages, _captureFirstResponse); break;
-    case LLMConnectionType.MEDIAPIPE: message = await mediapipeGenerate(theConnection, messages, _captureFirstResponse); break;
-    case LLMConnectionType.NONE: message = await noneLlmGenerate(messages, _captureFirstResponse); break;
+    case LLMConnectionType.WEBLLM: message = await webLlmGenerate(theConnection, messages, _onPartialResponse); break;
+    case LLMConnectionType.MEDIAPIPE: message = await mediapipeGenerate(theConnection, messages, _onPartialResponse); break;
+    case LLMConnectionType.NONE: message = await noneLlmGenerate(messages, _onPartialResponse); break;
     default: throw Error('Unexpected');
   }
   const endTime = Date.now();

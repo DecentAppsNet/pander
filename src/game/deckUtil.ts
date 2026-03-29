@@ -2,10 +2,13 @@ import { assertNonNullable } from "decent-portal";
 import Card from "./types/cards/Card";
 import CardType from "./types/cards/CardType";
 import Deck from "./types/cards/Deck";
-import KeywordGoal from "./types/cards/KeywordGoal";
 import TopicCard from "./types/cards/TopicCard";
 import HappinessChange from "./types/HappinessChange";
 import { promptToUniqueWords } from "./wordAnalysisUtil";
+import Level from "./types/Level";
+import { findCardInfo } from "./cardsFileUtil";
+import { createTopicCard, findHappinessChangesForTopicCard } from "./topicCardUtil";
+import AudienceMember from "./types/AudienceMember";
 
 let theNextKeyNo = 0;
 
@@ -19,83 +22,30 @@ function _nextKey():string {
   return '' + (++theNextKeyNo);
 }
 
-// Randomly select useCount # of keywords and return corresponding goals for them.
-function _createKeywordGoals(keywords:string[], useCount:number = 3):KeywordGoal[] {
-  const shuffledKeywords = keywords.sort(() => 0.5 - Math.random());
-  const selectedKeywords = shuffledKeywords.slice(0, useCount);
-  return selectedKeywords.map(keyword => {return {keyword, isComplete:false} });
+function _createEmptyDeck():Deck {
+  return { cards:[], activeCardNo:0 };
 }
 
-// Just use this function to create a deck for now. Wait for the dust to settle before making a clean data-driven approach.
-export function createSomeStupidDeck():Deck {
-  const cards:Card[] = [
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Simple Greeting',
-      description: 'Say hi to the crowd.',
-      keywordGoals: _createKeywordGoals(['everyone', 'candidate', 'today', 'gathering', 'pleasure', 'crowd', 'honor']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Town Pride',
-      description: 'Show appreciation for their place on the map.',
-      keywordGoals: _createKeywordGoals(['town', 'street', 'barber', 'diner', 'school', 'church', 'history', 'pride', 'century']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Early Days',
-      description: 'Tell a brief anecdote from your past.',
-      keywordGoals: _createKeywordGoals(['father', 'grandmother', 'fishing', 'struggle', 'birthday', 'first', 'job', 'life', 'lesson', 'bootstraps']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Just Like Them',
-      description: `Make em feel you're one of them.`,
-      keywordGoals: _createKeywordGoals(['both', 'same', 'share', 'common', 'understanding', 'relate', 'empathy', 'similar', 'together']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Scapegoat',
-      description: `Pick somebody to blame for the World's problems.`,
-      keywordGoals: _createKeywordGoals(['who', 'enemy', 'responsible', 'blame', 'problem', 'trouble', 'stink', 'corruption', 'greed', 'evil']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Gonna Fix It',
-      description: `You've got the solution.`,
-      keywordGoals: _createKeywordGoals(['assess', 'plan', 'sleeves', 'work', 'fix', 'solve', 'problem', 'solution', 'ready']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Time to Rhyme',
-      description: `Everybody likes some good rhymin'`,
-      keywordGoals: _createKeywordGoals(['frustration', 'stagnation', 'nation', 'innovation', 'education', 'imagination', 
-        'dedication', 'motivation', 'inspiration', 'subjugation', 'defecation']),
-      isComplete:false
-    },
-    { 
-      key: _nextKey(),
-      type:CardType.Topic, 
-      title: 'Final Call',
-      description: `Wrap up the speech and remind them to vote.`,
-      keywordGoals: _createKeywordGoals(['grateful', 'time', 'vote', 'goodbye', 'thank', 'appreciate', 'support', 'win', 'future', 'together']),
-      isComplete:false
-    },
-  ];
-  return { cards, activeCardNo:0 };
+async function _createCard(cardId:string):Promise<Card|null> {
+  try {
+    const cardInfo = await findCardInfo(cardId);
+    if (cardInfo.type === 'Topic') return createTopicCard(cardInfo, _nextKey());
+    console.warn(`Don't know how to create card of type "${cardInfo.type}". Skipping!`);
+    return null;
+  } catch(e) {
+    console.warn(`Failed to create card ID "${cardId}". Error: ` + e);
+    return null;
+  }
+}
+
+export async function createDeckForLevel(level:Level):Promise<Deck> {
+  if (level.cardIds.length === 0) return _createEmptyDeck();
+  const deck:Deck = { cards:[], activeCardNo:0 };
+  for(let i = 0; i < level.cardIds.length; ++i) {
+    const card = await _createCard(level.cardIds[i]);
+    if (card) deck.cards.push(card);
+  }
+  return deck;
 }
 
 
@@ -127,4 +77,20 @@ export function updateCardFromPrompt(playerText:string, card:Card):UpdateCardCha
 export function isEndOfDeck(deck:Deck):boolean {
   assertNonNullable(deck);
   return deck.activeCardNo === deck.cards.length;
+}
+
+export function isActiveCardComplete(deck:Deck):boolean {
+  assertNonNullable(deck);
+  return deck.activeCardNo < deck.cards.length && deck.cards[deck.activeCardNo].isComplete;
+}
+
+export function getActiveCard(deck:Deck):Card {
+  assertNonNullable(deck);
+  if (deck.activeCardNo >= deck.cards.length) throw Error('Unexpected');
+  return deck.cards[deck.activeCardNo];
+}
+
+export async function findHappinessChangesForCard(cardPlayerTexts:string[], card:Card, audienceMembers:AudienceMember[]):Promise<HappinessChange[]> {
+  if (card.type === CardType.Topic) return findHappinessChangesForTopicCard(cardPlayerTexts, card, audienceMembers);
+  throw new Error('Unexpected');
 }

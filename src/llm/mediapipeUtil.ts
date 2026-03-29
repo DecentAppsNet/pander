@@ -48,11 +48,10 @@ export async function mediapipeConnect(modelId: string, connection: LLMConnectio
             baseOptions: {
                 modelAssetPath: modelUrl
             },
-            // some default settings
-            // https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/web_js#configuration-options
-            maxTokens: 8192,
+            // These settings specifically for Pander - no creativity, small token use.
+            maxTokens: 1024,
             topK: 128,
-            temperature: 0.2,
+            temperature: 0,
             randomSeed: 0
         });
 

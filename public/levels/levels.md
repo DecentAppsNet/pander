@@ -2,30 +2,14 @@
 
 The sections that follow are names of levels. Each level can contain different combinations of characters. You can customize characters in the separate /public/characters.md file, including making variants of other characters that behave differently. For example, suppose you want a clown that is more of an evil clown than a traditional one - copy the "# Clown" section to an "# Evil Clown" section and add "terror" and "suffering" to its likes.
 
-You can add a custom function for happiness evaluation in any level by specifying the optional "happinessFunction" settings. For example:
-
-`# Your Level
-* Laconian=50
-* Persian=30
-* happinessFunction=findLaconicHappinessChange`
-
-And you would implement a function following the FindHappinessChangeCallback signature like:
-
-`async function findLaconicHappinessChange(playerText:string, audienceMember:AudienceMember):Promise<number> {
-  if (audienceMember.characterId === 'Laconian' && playerText.length > 20) return -1; // They hate long-winded speech.
-}`
-
-And you'd bind your custom function to the GameSession instance with code like:
-
-`gameSession.bindFindHappinessFunctions([findLaconicHappinessChange]);`
-
-Then when `gameSession.startLevel('Your Level')` is called, the custom happiness function will be used to make updates to happiness.
+"cards" lists the cards that will be in the deck for the level. They should match sections from /public/cards.md.
 
 # At The Library
 
 * Librarian=8
 * Clown=1
 * Hodler=1
+* cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Middling Crowd
 
@@ -39,6 +23,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Mogger=4
 * Artist=3
 * Hodler=2
+* cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Theater
 
@@ -52,6 +37,7 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Mogger=8
 * Artist=6
 * Hodler=5
+* cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Stadium Rally
 
@@ -65,3 +51,4 @@ Then when `gameSession.startLevel('Your Level')` is called, the custom happiness
 * Mogger=40
 * Artist=30
 * Hodler=20
+* cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call

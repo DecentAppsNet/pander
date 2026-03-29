@@ -7,10 +7,10 @@ import { promptToUniqueWords, WordCooldownFactorCallback } from "./wordAnalysisU
 import LevelResults from "./types/LevelResults";
 
 export const DEFAULT_HAPPINESS = .5;
-const LOVE_BUMP = .2;
-const LIKE_BUMP = .1; 
-const DISLIKE_BUMP = -.1;
-const HATE_BUMP = -.2;
+export const LOVE_BUMP = .2;
+export const LIKE_BUMP = .1; 
+export const DISLIKE_BUMP = -.1;
+export const HATE_BUMP = -.2;
 
 export type SetHappinessCallback = (characterId:string, happiness:number) => void;
 export type FindHappinessChangeCallback = (playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback) => Promise<number>;
@@ -21,9 +21,8 @@ function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], char
   return audienceMembers.find(am => am.characterId === characterId) || null;
 }
 
-/* Default function for determining happiness change for one audience member in response to player text. 
-   Returns a number representing the amount by which happiness should change. */
-export async function findHappinessChangeDefault(playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback):Promise<number> {
+/* Returns a number representing the amount by which happiness should change. */
+async function _findHappinessChange(playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback):Promise<number> {
   const words = promptToUniqueWords(playerText);
   if (!words.length) return 0;
   let delta = 0;
@@ -36,21 +35,11 @@ export async function findHappinessChangeDefault(playerText:string, audienceMemb
   return delta;
 }
 
-/* Looks up a function by name from a "white list" of happiness functions, returning the default happiness function 
-   as a fallback if needed. */
-export function nameToHappinessFunction(happinessFunctionName:string|null, happinessFunctions:FindHappinessChangeCallback[]):FindHappinessChangeCallback {
-  if (!happinessFunctionName) return findHappinessChangeDefault;
-  const happinessFunction = happinessFunctions.find(func => func.name === happinessFunctionName);
-  if (happinessFunction) return happinessFunction as FindHappinessChangeCallback;
-  console.warn(`Could not find happiness function named "${happinessFunctionName}". Using default.`);
-  return findHappinessChangeDefault;
-}
-
 /* Finds all happiness changes for audience members in response to player text. */
-export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onFindHappinessChange:FindHappinessChangeCallback, onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
+export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
   const changes:HappinessChange[] = [];
   audienceMembers.forEach(async (audienceMember) => {
-    const happinessDelta = await onFindHappinessChange(playerText, audienceMember, onWordCooldownFactor);
+    const happinessDelta = await _findHappinessChange(playerText, audienceMember, onWordCooldownFactor);
     if (happinessDelta) changes.push({characterId:audienceMember.characterId, happinessDelta});
   });
   return changes;
@@ -80,6 +69,10 @@ export function applyHappinessChanges(averageHappiness:number, happinessChanges:
   const nextAverageHappiness = calcAverageHappiness(audienceMembers);
   if (!isClose(averageHappiness, nextAverageHappiness)) onAverageHappinessChange(nextAverageHappiness);
   return nextAverageHappiness;
+}
+
+export function createGlobalHappinessChangesForAudience(happinessDelta:number, audienceMembers:AudienceMember[]):HappinessChange[] {
+  return audienceMembers.map(am => { return { happinessDelta, characterId:am.characterId } });
 }
 
 export function getLevelResults(audienceMembers:AudienceMember[]):LevelResults {
