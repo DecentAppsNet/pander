@@ -72,6 +72,13 @@ function _calcHappinessDeltaFromScoreResponse(scoreResponse:string):number {
   return scaleClamped(charValue, 0, 9, DISLIKE_BUMP, LIKE_BUMP);
 }
 
+export async function preWarmLlmForTopicCard(card:TopicCard) {
+  if (!card.llmScoreInstructions) return;
+  const messages = duplicateLLMMessages(card.llmScoreInstructions);
+  addUserMessageToChatHistory(messages, 'i');
+  await generate(messages); // I don't care about the response - just getting the LLM to load instructions into its KVCache so next call will be fast.
+}
+
 export async function findHappinessChangesForTopicCard(cardPlayerTexts:string[], card:TopicCard, audienceMembers:AudienceMember[]):Promise<HappinessChange[]> {
   if (!card.isComplete) return createGlobalHappinessChangesForAudience(DISLIKE_BUMP, audienceMembers);
   if (!card.llmScoreInstructions) return [];

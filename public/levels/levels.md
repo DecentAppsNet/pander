@@ -9,7 +9,7 @@ The sections that follow are names of levels. Each level can contain different c
 * Librarian=8
 * Clown=1
 * Hodler=1
-* cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
+* cards=Simple Greeting|Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Middling Crowd
 

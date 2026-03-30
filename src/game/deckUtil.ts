@@ -7,7 +7,7 @@ import HappinessChange from "./types/HappinessChange";
 import { promptToUniqueWords } from "./wordAnalysisUtil";
 import Level from "./types/Level";
 import { findCardInfo } from "./cardsFileUtil";
-import { createTopicCard, findHappinessChangesForTopicCard } from "./topicCardUtil";
+import { createTopicCard, findHappinessChangesForTopicCard, preWarmLlmForTopicCard } from "./topicCardUtil";
 import AudienceMember from "./types/AudienceMember";
 
 let theNextKeyNo = 0;
@@ -92,5 +92,10 @@ export function getActiveCard(deck:Deck):Card {
 
 export async function findHappinessChangesForCard(cardPlayerTexts:string[], card:Card, audienceMembers:AudienceMember[]):Promise<HappinessChange[]> {
   if (card.type === CardType.Topic) return findHappinessChangesForTopicCard(cardPlayerTexts, card, audienceMembers);
+  throw new Error('Unexpected');
+}
+
+export async function preWarmLlmForCard(card:Card) {
+  if (card.type === CardType.Topic) return preWarmLlmForTopicCard(card);
   throw new Error('Unexpected');
 }

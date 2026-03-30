@@ -6,7 +6,7 @@ import AudienceMember from "./types/AudienceMember"
 import Level, { duplicateLevel } from "./types/Level";
 import WordUsageHistory from "./types/WordUsageHistory";
 import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallback } from "./wordAnalysisUtil";
-import { createDeckForLevel, DeckChangedCallback, findHappinessChangesForCard, getActiveCard, isActiveCardComplete, isEndOfDeck, updateCardFromPrompt } from "./deckUtil";
+import { createDeckForLevel, DeckChangedCallback, findHappinessChangesForCard, getActiveCard, isActiveCardComplete, isEndOfDeck, preWarmLlmForCard, updateCardFromPrompt } from "./deckUtil";
 import Deck, { duplicateDeck } from "./types/cards/Deck";
 import GameSessionSettings from "./types/GameSettings";
 import { assertNonNullable } from "decent-portal";
@@ -69,6 +69,7 @@ class GameSession {
       const levelResults = getLevelResults(this._audienceMembers);
       this._onEndLevel(levelResults);
     } else {
+      preWarmLlmForCard(getActiveCard(this._deck));
       this._turnTimer = setTimeout(() => this._goNextCard(), this._settings.turnDuration);
     }
   }
