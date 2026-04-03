@@ -84,10 +84,14 @@ export function isActiveCardComplete(deck:Deck):boolean {
   return deck.activeCardNo < deck.cards.length && deck.cards[deck.activeCardNo].isComplete;
 }
 
-export function getActiveCard(deck:Deck):Card {
+export function getActiveCard(deck:Deck):Card|null {
   assertNonNullable(deck);
-  if (deck.activeCardNo >= deck.cards.length) throw Error('Unexpected');
-  return deck.cards[deck.activeCardNo];
+  return deck.activeCardNo >= deck.cards.length ? null : deck.cards[deck.activeCardNo];
+}
+
+export function getNextCard(deck:Deck):Card|null {
+  assertNonNullable(deck);
+  return (deck.activeCardNo >= deck.cards.length - 1)? null : deck.cards[deck.activeCardNo + 1];
 }
 
 export async function findHappinessChangesForCard(cardPlayerTexts:string[], card:Card, audienceMembers:AudienceMember[]):Promise<HappinessChange[]> {

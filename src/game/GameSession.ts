@@ -6,7 +6,7 @@ import AudienceMember from "./types/AudienceMember"
 import Level, { duplicateLevel } from "./types/Level";
 import WordUsageHistory from "./types/WordUsageHistory";
 import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallback } from "./wordAnalysisUtil";
-import { createDeckForLevel, DeckChangedCallback, findHappinessChangesForCard, getActiveCard, isActiveCardComplete, isEndOfDeck, preWarmLlmForCard, updateCardFromPrompt } from "./deckUtil";
+import { createDeckForLevel, DeckChangedCallback, findHappinessChangesForCard, getActiveCard, getNextCard, isActiveCardComplete, isEndOfDeck, preWarmLlmForCard, updateCardFromPrompt } from "./deckUtil";
 import Deck, { duplicateDeck } from "./types/cards/Deck";
 import GameSessionSettings from "./types/GameSettings";
 import { assertNonNullable } from "decent-portal";
@@ -52,24 +52,29 @@ class GameSession {
     assertNonNullable(this._deck);
     if (isEndOfDeck(this._deck)) return;
 
-    findHappinessChangesForCard(this._cardPlayerTexts, getActiveCard(this._deck), this._audienceMembers).then((happinessChanges:HappinessChange[]) =>
-      // The scoring can happen in the background and doesn't need to affect the next card transition.
-      this._averageHappiness = applyHappinessChanges(this._averageHappiness, happinessChanges, this._audienceMembers, this._onSetHappiness, this._onAverageHappinessChange)
-    );
-    this._cardPlayerTexts = [];
+    const activeCard = getActiveCard(this._deck), nextCard = getNextCard(this._deck);
+    assertNonNullable(activeCard);
+    findHappinessChangesForCard(this._cardPlayerTexts, activeCard, this._audienceMembers).then((happinessChanges:HappinessChange[]) => { 
+      this._averageHappiness = applyHappinessChanges(this._averageHappiness, happinessChanges, this._audienceMembers, this._onSetHappiness, this._onAverageHappinessChange);
+      if (nextCard) preWarmLlmForCard(nextCard);
+    });
 
+    // Update the deck to advance to next card.
+    this._cardPlayerTexts = [];
     this._deck = duplicateDeck(this._deck);
     this._deck.activeCardNo++;
     this._onDeckChanged(this._deck);
+
+    // The previously running time for the turn is canceled because we've advanced past the card it was for.
     if (this._turnTimer) {
       clearTimeout(this._turnTimer);
       this._turnTimer = null;
     }
-    if (isEndOfDeck(this._deck)) {
+
+    if (isEndOfDeck(this._deck)) { // End the level if at end of deck.
       const levelResults = getLevelResults(this._audienceMembers);
       this._onEndLevel(levelResults);
-    } else {
-      preWarmLlmForCard(getActiveCard(this._deck));
+    } else { // Set turn timer for the next card.
       this._turnTimer = setTimeout(() => this._goNextCard(), this._settings.turnDuration);
     }
   }
