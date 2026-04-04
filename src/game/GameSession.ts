@@ -88,9 +88,12 @@ class GameSession {
     const onWordCooldownFactor:WordCooldownFactorCallback = (word:string) => findWordCooldownFactor(word, this._wordUsageHistory);
     let happinessChanges = await findHappinessChangesForAudience(playerText, this._audienceMembers, onWordCooldownFactor);
     updateWordUsageHistory(playerText, this._wordUsageHistory);
-    const { didCardChange, happinessChanges: cardHappinessChanges } = updateCardFromPrompt(playerText, this._deck.cards[this._deck.activeCardNo]);
-    if (didCardChange) this._onDeckChanged(duplicateDeck(this._deck));
-    if (cardHappinessChanges.length > 0) happinessChanges = happinessChanges.concat(cardHappinessChanges);
+    const activeCard = getActiveCard(this._deck);
+    if (activeCard) {
+      const { didCardChange, happinessChanges: cardHappinessChanges } = updateCardFromPrompt(playerText, activeCard);
+      if (didCardChange) this._onDeckChanged(duplicateDeck(this._deck));
+      if (cardHappinessChanges.length > 0) happinessChanges = happinessChanges.concat(cardHappinessChanges);
+    }
     this._averageHappiness = applyHappinessChanges(this._averageHappiness, happinessChanges, this._audienceMembers, 
         this._onSetHappiness, this._onAverageHappinessChange);
   }
