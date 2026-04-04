@@ -1,17 +1,14 @@
 import AudienceMember, { duplicateAudienceMember } from "./AudienceMember"
-import TellaStyle from "./TellaStyle";
 
 type Level = {
   audienceMembers:AudienceMember[],
-  happinessFunctionName:string|null,
-  tellaStyle:TellaStyle
+  cardIds:string[]
 };
 
 export function duplicateLevel(level:Level):Level {
   return {
     audienceMembers: level.audienceMembers.map(duplicateAudienceMember),
-    happinessFunctionName: level.happinessFunctionName,
-    tellaStyle: level.tellaStyle
+    cardIds:[...level.cardIds]
   }
 }
 

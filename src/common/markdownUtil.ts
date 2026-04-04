@@ -18,7 +18,7 @@ Some conventions this module supports/promotes:
 
 // Type for associative array
 type Sections = { [sectionName:string]:string };
-type NameValues = { [name:string]:string };
+export type NameValues = { [name:string]:string };
 
 // E.g., "hello world" -> "helloWorld".
 export function textToCamelCase(text:string):string {
@@ -94,4 +94,8 @@ export function parseNameValueLines(markdownText:string):NameValues {
     nameValues[name] = value;
   }
   return nameValues;
+}
+
+export function parseOptions(optionText:string):string[] {
+  return optionText.split('|').map(t => t.trim()).filter(t => t.length > 0);
 }

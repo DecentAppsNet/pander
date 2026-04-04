@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Project-specific excludes
 node_modules
 dist
 dist-ssr
@@ -15,13 +16,18 @@ workAssets
 coverage
 public/.vite
 
+# Do not remove/uncomment these lines below without understanding legal implications of distributing Gemma models via Git repo.
+# At time of writing, we are just downloading Gemma models to local dev environments.
+public/litert-models/*
+!public/litert-models/.gitkeep
+
 # Be careful about deleting this line below. Very easy to accidentally expose some secrets used in environment variables by committing the .env file.
 .env
 
 # Claude Code
 .claude/settings.local.json
 
-# Editor directories and files
+# Editor directories and files. Okay to add more for your particular dev environment.
 .vscode/*
 !.vscode/extensions.json
 .idea

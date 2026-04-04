@@ -7,7 +7,7 @@ import Rect, { UNSPECIFIED_RECT } from "../../drawing/types/Rect";
 import { createImageBitmapFromImageData, createImageDataFromImageBitmap } from "../../drawing/drawUtil";
 import CharacterDrawState from "./types/CharacterDrawState";
 import { loadCharacterDrawSettings } from "@/game/characterFileUtil";
-import { clamp } from "@/common/mathUtil";
+import { clamp, scaleClamped } from "@/common/mathUtil";
 
 const UNSPECIFIED_TIME = -1;
 const FLASH_DURATION = 1000;
@@ -220,7 +220,8 @@ export function createCharacterDrawState(spriteset:CharacterSpriteset, character
     nextBodyFrameChangeTime:now + getNextBodyFrameChangeInterval(happiness) + staggerAnimationTime,
     nextMoodIconDisplayTime:now + getNextMoodIconDisplayInterval(happiness) + staggerAnimationTime,
     isNextFlashPositive:true,
-    nextFlashTime:UNSPECIFIED_TIME
+    nextFlashTime:UNSPECIFIED_TIME,
+    nextFlashText:'test'
   }
 }
 
@@ -325,32 +326,34 @@ function _startFlashStateIfActive(drawState:CharacterDrawState, context:CanvasRe
   return true;
 }
 
-function _drawBodyText(drawState:CharacterDrawState, context:CanvasRenderingContext2D, textCharacter:string) {
+function _drawBodyText(drawState:CharacterDrawState, context:CanvasRenderingContext2D, now:number) {
   const dest = drawState.destRect;
   context.save();
-  const fontSize = Math.max(8, Math.floor(Math.min(dest.w, dest.h) * 0.2));
-  context.font = `${fontSize}px sans-serif`;
+  const fontSize = Math.max(4, Math.floor(Math.min(dest.w, dest.h) * 0.1));
+  context.font = `${fontSize}px Jellee`;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.lineWidth = Math.max(1, Math.floor(fontSize * 0.08));
   context.strokeStyle = 'rgba(0,0,0,0.7)';
   context.fillStyle = 'black';
-  const cx = dest.x + dest.w / 2;
-  const cy = dest.y + dest.h / 2;
-  context.strokeText(textCharacter, cx, cy);
-  context.fillText(textCharacter, cx, cy);
+  const elapsed = now - drawState.nextFlashTime;
+  const cyFlashTextMovement = (drawState.isNextFlashPositive ? -1: 1) * (drawState.destRect.h * .1);
+  const dy = scaleClamped(elapsed, 0, FLASH_DURATION, 0, cyFlashTextMovement);
+  const textX = dest.x + dest.w / 2;
+  const textY = dest.y + dest.h / 2 + dy;
+  
+  context.strokeText(drawState.nextFlashText, textX, textY);
+  context.fillText(drawState.nextFlashText, textX, textY);
   context.restore();
 }
 
-const UP_ARROW = '\u2B06';
-const DOWN_ARROW = '\u2B07';
 export function drawCharacter(drawState:CharacterDrawState, context:CanvasRenderingContext2D) {
   const now = performance.now();
   _updateCharacterAnimationTimings(drawState, now);
   const isFlashing = _startFlashStateIfActive(drawState, context, now);
   _drawBody(drawState, context);
   _drawFace(drawState, context);
-  if (isFlashing) _drawBodyText(drawState, context, drawState.isNextFlashPositive ? UP_ARROW : DOWN_ARROW);
+  if (isFlashing) _drawBodyText(drawState, context, now);
   if (isFlashing) _endFlashState(context);
   _drawMoodIconIfActive(drawState, context, now);
 }

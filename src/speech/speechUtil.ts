@@ -1,18 +1,12 @@
 import { Recognizer, setModelsBaseUrl } from 'sl-web-speech';
-import { calcSpeechCoherence } from './coherenceUtil';
 
 export type StringCallback = (s:string) => void;
-export type UpdateCoherenceCallback = (coherence:number) => void;
 
 let theRecognizer:Recognizer|null = null;
 let theIsSpeechEnabled = false;
 let theInitSpeechPromise:Promise<boolean>|null = null;
 let theLastPartial:string = '';
-
-function _onUpdateCoherenceFromSpeech(speech:string, onUpdateCoherence:UpdateCoherenceCallback) {
-  const coherence = calcSpeechCoherence(speech);
-  onUpdateCoherence(coherence);
-}
+let theLastFinal:string = '';
 
 function _onPartial(speech:string, onPromptFromSpeech:StringCallback) {
   if (speech === theLastPartial) return;
@@ -20,8 +14,12 @@ function _onPartial(speech:string, onPromptFromSpeech:StringCallback) {
   onPromptFromSpeech(speech);
 }
 
+function _onFinal(speech:string) {
+  theLastFinal = speech;
+}
+
 export async function initSpeech(onPromptFromSpeech:StringCallback, 
-    onUpdateCoherence:UpdateCoherenceCallback, onStopTalking:() => {}):Promise<boolean> {
+    onStopTalking:StringCallback):Promise<boolean> {
   if (theInitSpeechPromise) return theInitSpeechPromise;
   theInitSpeechPromise = new Promise<boolean>(async (resolve) => {
 
@@ -30,8 +28,8 @@ export async function initSpeech(onPromptFromSpeech:StringCallback,
       theRecognizer.bindCallbacks(
         (speech) => _onPartial(speech, onPromptFromSpeech), 
         () => {}, 
-        onStopTalking, 
-        (speech) => _onUpdateCoherenceFromSpeech(speech, onUpdateCoherence)
+        () => onStopTalking(theLastFinal),
+        _onFinal
       );
       resolve(true);
     }

@@ -7,12 +7,12 @@ import { promptToUniqueWords, WordCooldownFactorCallback } from "./wordAnalysisU
 import LevelResults from "./types/LevelResults";
 
 export const DEFAULT_HAPPINESS = .5;
-const LOVE_BUMP = .2;
-const LIKE_BUMP = .1; 
-const DISLIKE_BUMP = -.1;
-const HATE_BUMP = -.2;
+export const LOVE_BUMP = .2;
+export const LIKE_BUMP = .1; 
+export const DISLIKE_BUMP = -.1;
+export const HATE_BUMP = -.2;
 
-export type SetHappinessCallback = (characterId:string, happiness:number) => void;
+export type SetHappinessCallback = (characterId:string, triggerWord:string, happiness:number) => void;
 export type FindHappinessChangeCallback = (playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback) => Promise<number>;
 export type AverageHappinessChangeCallback = (happiness:number) => void;
 export type EndLevelCallback = (levelResults:LevelResults) => void;
@@ -21,37 +21,37 @@ function _findAudienceMemberByCharacterId(audienceMembers:AudienceMember[], char
   return audienceMembers.find(am => am.characterId === characterId) || null;
 }
 
-/* Default function for determining happiness change for one audience member in response to player text. 
-   Returns a number representing the amount by which happiness should change. */
-export async function findHappinessChangeDefault(playerText:string, audienceMember:AudienceMember, onWordCooldownFactor:WordCooldownFactorCallback):Promise<number> {
+/* Returns a number representing the amount by which happiness should change. */
+async function _findHappinessChange(playerText:string, audienceMember:AudienceMember, 
+      onWordCooldownFactor:WordCooldownFactorCallback):Promise<{happinessDelta:number, triggerWord:string}|null> {
   const words = promptToUniqueWords(playerText);
-  if (!words.length) return 0;
-  let delta = 0;
+  if (!words.length) return null;
+  let happinessDelta = 0, triggerWord = '';
   words.forEach(word => {
-    if (audienceMember.loves.includes(word)) delta += (LOVE_BUMP * onWordCooldownFactor(word));
-    else if (audienceMember.likes.includes(word)) delta += (LIKE_BUMP * onWordCooldownFactor(word));
-    else if (audienceMember.dislikes.includes(word)) delta += (DISLIKE_BUMP * onWordCooldownFactor(word));
-    else if (audienceMember.hates.includes(word)) delta += (HATE_BUMP * onWordCooldownFactor(word));
+    if (audienceMember.loves.includes(word)) {
+      triggerWord = word;
+      happinessDelta += (LOVE_BUMP * onWordCooldownFactor(word));
+    } else if (audienceMember.likes.includes(word)) {
+      triggerWord = word;
+      happinessDelta += (LIKE_BUMP * onWordCooldownFactor(word));
+    } else if (audienceMember.dislikes.includes(word)) {
+      if (triggerWord === '') triggerWord = word;
+      happinessDelta += (DISLIKE_BUMP * onWordCooldownFactor(word));
+    }
+    else if (audienceMember.hates.includes(word)) {
+      if (triggerWord === '') triggerWord = word;
+      happinessDelta += (HATE_BUMP * onWordCooldownFactor(word));
+    }
   });
-  return delta;
-}
-
-/* Looks up a function by name from a "white list" of happiness functions, returning the default happiness function 
-   as a fallback if needed. */
-export function nameToHappinessFunction(happinessFunctionName:string|null, happinessFunctions:FindHappinessChangeCallback[]):FindHappinessChangeCallback {
-  if (!happinessFunctionName) return findHappinessChangeDefault;
-  const happinessFunction = happinessFunctions.find(func => func.name === happinessFunctionName);
-  if (happinessFunction) return happinessFunction as FindHappinessChangeCallback;
-  console.warn(`Could not find happiness function named "${happinessFunctionName}". Using default.`);
-  return findHappinessChangeDefault;
+  return happinessDelta === 0 ? null : { happinessDelta, triggerWord };
 }
 
 /* Finds all happiness changes for audience members in response to player text. */
-export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onFindHappinessChange:FindHappinessChangeCallback, onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
+export async function findHappinessChangesForAudience(playerText:string, audienceMembers:AudienceMember[], onWordCooldownFactor:WordCooldownFactorCallback):Promise<HappinessChange[]> {
   const changes:HappinessChange[] = [];
   audienceMembers.forEach(async (audienceMember) => {
-    const happinessDelta = await onFindHappinessChange(playerText, audienceMember, onWordCooldownFactor);
-    if (happinessDelta) changes.push({characterId:audienceMember.characterId, happinessDelta});
+    const result = await _findHappinessChange(playerText, audienceMember, onWordCooldownFactor);
+    if (result) changes.push({characterId:audienceMember.characterId, triggerWord:result.triggerWord, happinessDelta:result.happinessDelta});
   });
   return changes;
 }
@@ -75,11 +75,15 @@ export function applyHappinessChanges(averageHappiness:number, happinessChanges:
     const oldHappiness = audienceMember.happiness;
     audienceMember.happiness = clamp(oldHappiness + change.happinessDelta, 0, 1);
     if (isClose(oldHappiness, audienceMember.happiness)) return;
-    onSetHappiness(audienceMember.characterId, audienceMember.happiness);
+    onSetHappiness(audienceMember.characterId, change.triggerWord, audienceMember.happiness);
   });
   const nextAverageHappiness = calcAverageHappiness(audienceMembers);
   if (!isClose(averageHappiness, nextAverageHappiness)) onAverageHappinessChange(nextAverageHappiness);
   return nextAverageHappiness;
+}
+
+export function createGlobalHappinessChangesForAudience(happinessDelta:number, audienceMembers:AudienceMember[]):HappinessChange[] {
+  return audienceMembers.map(am => { return { happinessDelta, characterId:am.characterId, triggerWord:'' } });
 }
 
 export function getLevelResults(audienceMembers:AudienceMember[]):LevelResults {

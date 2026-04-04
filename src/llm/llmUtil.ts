@@ -1,0 +1,117 @@
+/*
+  This module is an abstraction layer for LLM APIs.
+
+  General Usage:
+  * call connect() to initialize the connection.
+  * call generate() to get a response for a prompt.
+  
+  There is just one connection type for now: WebLLM, but this is abstracted for future CDA updates that may add other LLM providers.
+*/
+
+import { assert, getAppMetaData, updateModelDeviceLoadHistory, updateModelDevicePerformanceHistory } from "decent-portal";
+
+import LLMConnection from "./types/LLMConnection";
+import LLMConnectionState from "./types/LLMConnectionState";
+import LLMConnectionType from "./types/LLMConnectionType";
+import LLMMessages from "./types/LLMMessages";
+import StatusUpdateCallback from "./types/StatusUpdateCallback";
+import { webLlmConnect, webLlmGenerate } from "./webLlmUtil";
+import { mediapipeConnect, mediapipeGenerate } from "./mediapipeUtil";
+import { noneLlmConnect, noneLlmGenerate } from "./noneLlmUtil";
+
+const UNSPECIFIED_MODEL_ID = 'UNSPECIFIED';
+const NONE_MODEL_ID = 'None';
+
+let theConnection: LLMConnection = {
+  modelId: UNSPECIFIED_MODEL_ID,
+  state: LLMConnectionState.UNINITIALIZED,
+  webLLMEngine: null,
+  mediapipeEngine: null,
+  serverUrl: null,
+  connectionType: LLMConnectionType.NONE
+}
+
+function _clearConnectionAndThrow(message: string) {
+  theConnection.webLLMEngine = null;
+  theConnection.mediapipeEngine = null;
+  theConnection.serverUrl = null;
+  theConnection.connectionType = LLMConnectionType.NONE;
+  theConnection.state = LLMConnectionState.INIT_FAILED;
+  throw new Error(message);
+}
+
+function _inputCharCount(messages: LLMMessages): number {
+  return (messages.systemMessage ? messages.systemMessage.length : 0) +
+    messages.chatHistory.reduce((acc, curr) => acc + curr.content.length, 0);
+}
+
+/*
+  Public APIs
+*/
+
+export function isLlmConnected(): boolean {
+  return theConnection.state === LLMConnectionState.READY || theConnection.state === LLMConnectionState.GENERATING;
+}
+
+// Useful for app code that needs to use model-specific prompts or has other model-specific behavior.
+export function getConnectionModelId(): string {
+  if (theConnection.modelId === UNSPECIFIED_MODEL_ID) throw Error('Must connect before model ID can be known.');
+  return theConnection.modelId;
+}
+
+export async function connect(modelId: string, onStatusUpdate: StatusUpdateCallback) {
+  if (isLlmConnected()) return;
+  theConnection.state = LLMConnectionState.INITIALIZING;
+  theConnection.modelId = modelId;
+  const startLoadTime = Date.now();
+  if (modelId === NONE_MODEL_ID) {
+    await noneLlmConnect(modelId, theConnection, onStatusUpdate);
+  } else {
+    const metadata = await getAppMetaData() as any;
+    const models = metadata.supportedModels ?? [];
+    const selectedModel = models.find((m: any) => m.id === modelId);
+    const inferenceFamily = selectedModel?.inferenceFamily ?? 'webllm';
+
+    if (inferenceFamily === 'mediapipe') {
+      if (!await mediapipeConnect(theConnection.modelId, theConnection, onStatusUpdate)) {
+        updateModelDeviceLoadHistory(theConnection.modelId, false);
+        _clearConnectionAndThrow('Failed to connect to Mediapipe.');
+      }
+    } else {
+      if (!await webLlmConnect(theConnection.modelId, theConnection, onStatusUpdate)) {
+        updateModelDeviceLoadHistory(theConnection.modelId, false);
+        _clearConnectionAndThrow('Failed to connect to WebLLM.');
+      }
+    }
+  }
+  updateModelDeviceLoadHistory(theConnection.modelId, true, Date.now() - startLoadTime);
+  theConnection.state = LLMConnectionState.READY;
+}
+
+export async function generate(messages: LLMMessages, onStatusUpdate?: StatusUpdateCallback): Promise<string> {
+  let firstResponseTime = 0;
+  function _onPartialResponse(status: string, percentComplete: number) {
+    if (!firstResponseTime) firstResponseTime = Date.now();
+    if (onStatusUpdate) onStatusUpdate(status, percentComplete);
+  }
+  assert(messages.chatHistory.length > 0);
+  if (!isLlmConnected()) throw Error('LLM connection is not initialized.');
+  if (theConnection.state !== LLMConnectionState.READY) throw Error('LLM is not in ready state.');
+  theConnection.state = LLMConnectionState.GENERATING;
+  let message = '';
+  let requestTime = Date.now();
+  switch (theConnection.connectionType) {
+    case LLMConnectionType.WEBLLM: message = await webLlmGenerate(theConnection, messages, _onPartialResponse); break;
+    case LLMConnectionType.MEDIAPIPE: message = await mediapipeGenerate(theConnection, messages, _onPartialResponse); break;
+    case LLMConnectionType.NONE: message = await noneLlmGenerate(messages, _onPartialResponse); break;
+    default: throw Error('Unexpected');
+  }
+  const endTime = Date.now();
+  const durationSeconds = (endTime - requestTime) / 1000;
+  const lastUserMessage = messages.chatHistory.filter(m => m.role === 'user').pop();
+  console.log(`${lastUserMessage?.content}\ntook ${durationSeconds.toFixed(1)} seconds to process`);
+
+  updateModelDevicePerformanceHistory(theConnection.modelId, requestTime, firstResponseTime, endTime, _inputCharCount(messages), message.length);
+  theConnection.state = LLMConnectionState.READY;
+  return message;
+}

@@ -7,7 +7,6 @@ import { baseUrl } from "@/common/urlUtil";
 import Level from "./types/Level";
 import { loadAudienceMember } from "./characterFileUtil";
 import AudienceMember from "./types/AudienceMember";
-import TellaStyle from "./types/TellaStyle";
 
 async function _getLevelsText():Promise<string> {
   const response = await fetch(baseUrl('/levels/levels.md'));
@@ -21,6 +20,12 @@ export async function getLevelIds():Promise<string[]> {
   return sectionNames;
 }
 
+function _parseCardNames(cardsValue?:string):string[] {
+  if (!cardsValue) return [];
+  return cardsValue.split('|').map(t => t.trim()).filter(t => t.length > 0);
+}
+
+const LEVEL_RESERVED_NAMES = ['cards', 'tellaStyle']; // Non-reserved names are meant to match to character IDs.
 export async function loadLevel(levelId:string):Promise<Level> {
   const levelsText = await _getLevelsText();
   const sections = parseSections(levelsText);
@@ -28,14 +33,13 @@ export async function loadLevel(levelId:string):Promise<Level> {
   if (!levelSection) throw Error(`Did not find "${levelId}" section in levels.md`);
   const nameValuePairs = parseNameValueLines(levelSection);
 
-  const tellaStyleValue = nameValuePairs.tellaStyle || '';
-  const tellaStyle:TellaStyle = Object.values(TellaStyle).includes(tellaStyleValue as TellaStyle)
-    ? tellaStyleValue as TellaStyle
-    : TellaStyle.Speech;
-  const level:Level = { audienceMembers:[], happinessFunctionName:nameValuePairs.happinessFunction || null, tellaStyle };
+  const cardIds = _parseCardNames(nameValuePairs.cards);
+
+  const level:Level = { audienceMembers:[], cardIds };
   const characterIds = Object.keys(nameValuePairs);
   for(let i = 0; i < characterIds.length; ++i) {
     const characterId = characterIds[i];
+    if (LEVEL_RESERVED_NAMES.includes(characterId)) continue;
     try {
       const audienceMember:AudienceMember = await loadAudienceMember(characterId);
       audienceMember.count = parseInt(nameValuePairs[characterId]);

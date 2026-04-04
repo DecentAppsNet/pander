@@ -63,7 +63,8 @@ function AudienceView({characterSpriteset, audienceMembers}:Props) {
     const canvasHeight = Math.floor(rect.height);
     if (canvasWidth === 0 || canvasHeight === 0) return;
     crowdDrawStateRef.current = createCrowdDrawState(characterSpriteset, audienceMembers, canvasWidth, canvasHeight);
-    subscribeSetHappiness((event:SetHappinessEvent) => updateCharacterHappiness(event.characterId, event.happiness, crowdDrawStateRef.current));
+    subscribeSetHappiness((event:SetHappinessEvent) => 
+        updateCharacterHappiness(event.characterId, event.triggerWord, event.happiness, crowdDrawStateRef.current));
   }, [characterSpriteset, audienceMembers]);
 
   return (<div ref={containerRef} className={styles.container}>
