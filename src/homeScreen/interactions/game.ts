@@ -3,7 +3,6 @@ import { DeckChangedCallback } from "@/game/deckUtil";
 import GameSession from "@/game/GameSession";
 import { AverageHappinessChangeCallback, EndLevelCallback } from "@/game/happinessUtil";
 import { getDefaultLevelId } from "@/game/levelFileUtil";
-import GameSessionSettings from "@/game/types/GameSettings";
 import { appendRecentPrompt } from "@/persistence/recentPrompts";
 import { assertNonNullable } from "decent-portal";
 
@@ -19,8 +18,7 @@ export async function initGame(onSetRecentPrompts:Function, setAverageHappiness:
   function _setHappiness(characterId:string, triggerWord:string, happiness:number) {
     if (!theLastMessageIncoherent) setHappiness(characterId, triggerWord, happiness);
   }
-  const gameSessionSettings:GameSessionSettings = { turnDuration:DEFAULT_TURN_DURATION };
-  theGameSession = new GameSession(gameSessionSettings, _setHappiness, setAverageHappiness, onDeckChanged, onEndLevel);
+  theGameSession = new GameSession(_setHappiness, setAverageHappiness, onDeckChanged, onEndLevel);
   const levelId = await getDefaultLevelId();
   return levelId;
 }

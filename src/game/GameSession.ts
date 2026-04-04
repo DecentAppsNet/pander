@@ -8,7 +8,6 @@ import WordUsageHistory from "./types/WordUsageHistory";
 import { findWordCooldownFactor, updateWordUsageHistory, WordCooldownFactorCallback } from "./wordAnalysisUtil";
 import { createDeckForLevel, DeckChangedCallback, findHappinessChangesForCard, getActiveCard, getNextCard, isActiveCardComplete, isEndOfDeck, preWarmLlmForCard, updateCardFromPrompt } from "./deckUtil";
 import Deck, { duplicateDeck } from "./types/cards/Deck";
-import GameSessionSettings from "./types/GameSettings";
 import { assertNonNullable } from "decent-portal";
 import LevelResults from "./types/LevelResults";
 import HappinessChange from "./types/HappinessChange";
@@ -35,17 +34,14 @@ class GameSession {
   private _averageHappiness:number = DEFAULT_HAPPINESS;
   private _wordUsageHistory:WordUsageHistory = {};
   private _deck:Deck = { cards:[], activeCardNo: 0 };
-  private _settings:GameSessionSettings;
-  private _turnTimer:NodeJS.Timeout|null = null;
   private _cardPlayerTexts:string[] = []; // De-duped, high-quality speech associated with the active card.
 
-  constructor(settings:GameSessionSettings, onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, 
+  constructor(onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, 
       onDeckChanged:DeckChangedCallback, onEndLevel:EndLevelCallback = _endLevelNoOp) {
     this._onSetHappiness = onSetHappiness;
     this._onAverageHappinessChange = onAverageHappinessChange;
     this._onDeckChanged = onDeckChanged;
     this._onEndLevel = onEndLevel;
-    this._settings = settings;
   }
 
   private _goNextCard() {
@@ -65,17 +61,9 @@ class GameSession {
     this._deck.activeCardNo++;
     this._onDeckChanged(this._deck);
 
-    // The previously running time for the turn is canceled because we've advanced past the card it was for.
-    if (this._turnTimer) {
-      clearTimeout(this._turnTimer);
-      this._turnTimer = null;
-    }
-
     if (isEndOfDeck(this._deck)) { // End the level if at end of deck.
       const levelResults = getLevelResults(this._audienceMembers);
       this._onEndLevel(levelResults);
-    } else { // Set turn timer for the next card.
-      this._turnTimer = setTimeout(() => this._goNextCard(), this._settings.turnDuration);
     }
   }
 
@@ -88,6 +76,8 @@ class GameSession {
     this._wordUsageHistory = {};
     this._cardPlayerTexts = [];
     this._deck = await createDeckForLevel(level);
+    const activeCard = getActiveCard(this._deck);
+    if (activeCard) preWarmLlmForCard(activeCard);
     this._onDeckChanged(this._deck);
     if (!isClose(prevAverageHappiness, this._averageHappiness)) this._onAverageHappinessChange(this._averageHappiness);
     return duplicateLevel(level);
