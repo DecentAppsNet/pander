@@ -1,4 +1,4 @@
-import { findBestModel, ModelDeviceProblemsDialog, predictModelDeviceProblems } from "decent-portal";
+import { findBestModel, predictModelDeviceProblems } from "decent-portal";
 
 import { connect } from "@/llm/llmUtil.ts";
 
@@ -20,7 +20,7 @@ function _findPercentCompleteFromStatus(status:string):number|null {
 }
 
 // Returns true if model is ready to load, false if there are problems.
-export async function init(setModelId:Function, setProblems:Function, setModalDialogName:Function):Promise<boolean> {
+export async function init(setModelId:Function, _setProblems:Function, _setModalDialogName:Function):Promise<boolean> {
   const modelId = await findBestModel();
   if (modelId === 'None') {
     setModelId(modelId);

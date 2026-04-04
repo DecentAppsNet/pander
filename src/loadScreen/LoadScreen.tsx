@@ -15,7 +15,7 @@ type Props = {
 function LoadScreen(props:Props) {
   const [percentComplete, setPercentComplete] = useState(0);
   const [isReadyToLoad, setIsReadyToLoad] = useState<boolean>(false);
-  const [wasLoadCancelled, setWasLoadCancelled] = useState<boolean>(false);
+  const [wasLoadCancelled, _setWasLoadCancelled] = useState<boolean>(false);
   const [modalDialogName, setModalDialogName] = useState<string|null>(null);
   const [modelId, setModelId] = useState<string>('');
   const [currentTask, setCurrentTask] = useState('Loading');

@@ -1,0 +1,249 @@
+/* Mobile-first battle layout — designed for phone viewport */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  background: #1a1a2e;
+  color: white;
+  overflow: hidden;
+}
+
+/* Turn info bar */
+.turnBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1vh 2vw;
+  background: linear-gradient(135deg, #16213e, #0f3460);
+  min-height: 5vh;
+}
+
+.turnInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.turnLabel {
+  font-size: 2vh;
+  font-weight: bold;
+  color: #e94560;
+}
+
+.turnCount {
+  font-size: 1.4vh;
+  color: #aaa;
+}
+
+.timer {
+  font-size: 3vh;
+  font-weight: bold;
+  color: #f0c040;
+  min-width: 5vh;
+  text-align: center;
+}
+
+/* Scoreboard */
+.scoreboard {
+  display: flex;
+  justify-content: space-around;
+  padding: 0.5vh 2vw;
+  background: #16213e;
+  border-bottom: 1px solid #333;
+}
+
+.playerScore,
+.activePlayerScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5vh 2vw;
+  border-radius: 1vh;
+  transition: all 0.3s;
+}
+
+.activePlayerScore {
+  background: rgba(233, 69, 96, 0.2);
+  border: 1px solid #e94560;
+}
+
+.playerName {
+  font-size: 1.5vh;
+  color: #ccc;
+}
+
+.score {
+  font-size: 2.5vh;
+  font-weight: bold;
+  color: white;
+}
+
+/* Audience */
+.audienceArea {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* Card + Happiness side by side */
+.cardArea {
+  display: flex;
+  align-items: stretch;
+  padding: 0.5vh 1vw;
+  background: #0f3460;
+  min-height: 12vh;
+  max-height: 14vh;
+}
+
+.cardSection {
+  flex: 1;
+  overflow: hidden;
+}
+
+.happinessSection {
+  width: 8vw;
+  min-width: 30px;
+  padding-left: 1vw;
+}
+
+/* Turn score popup */
+.turnScorePopup {
+  position: absolute;
+  bottom: 20vh;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(233, 69, 96, 0.9);
+  color: white;
+  padding: 1vh 3vw;
+  border-radius: 2vh;
+  font-size: 2vh;
+  font-weight: bold;
+  z-index: 50;
+  animation: fadeInOut 2s forwards;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Input area */
+.inputArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  padding: 1vh 2vw;
+  background: #16213e;
+  border-top: 1px solid #333;
+}
+
+.endTurnButton {
+  background: #e94560;
+  color: white;
+  border: none;
+  border-radius: 1vh;
+  padding: 1vh;
+  font-size: 1.8vh;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.endTurnButton:hover {
+  background: #c73e54;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  background: #1a1a2e;
+  color: white;
+  font-size: 2.5vh;
+}
+
+/* Game over */
+.gameOver {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  background: #1a1a2e;
+  color: white;
+  gap: 3vh;
+  padding: 3vh;
+}
+
+.gameOverTitle {
+  font-family: "hobby-of-night";
+  font-size: 5vh;
+  color: #e94560;
+}
+
+.finalScores {
+  display: flex;
+  align-items: center;
+  gap: 3vw;
+}
+
+.winnerScore,
+.loserScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2vh 4vw;
+  border-radius: 2vh;
+}
+
+.winnerScore {
+  background: rgba(233, 69, 96, 0.3);
+  border: 2px solid #e94560;
+}
+
+.loserScore {
+  background: rgba(100, 100, 100, 0.2);
+  border: 2px solid #555;
+}
+
+.playerLabel {
+  font-size: 2vh;
+  color: #ccc;
+}
+
+.scoreValue {
+  font-size: 4vh;
+  font-weight: bold;
+}
+
+.vs {
+  font-size: 2.5vh;
+  color: #888;
+  font-style: italic;
+}
+
+.winnerName {
+  font-size: 3vh;
+  color: #f0c040;
+}
+
+.exitButton {
+  background: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 1vh;
+  padding: 1.5vh 4vw;
+  font-size: 2vh;
+  cursor: pointer;
+  margin-top: 2vh;
+}
+
+.exitButton:hover {
+  background: #4752C4;
+}

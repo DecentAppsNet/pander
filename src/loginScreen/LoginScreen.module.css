@@ -1,0 +1,58 @@
+.container {
+  display: grid;
+  height: 100vh;
+  grid-template-rows: 10vh 1fr;
+  grid-template-areas:
+    "header"
+    "content";
+}
+
+.content {
+  grid-area: content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2vh;
+  padding: 3vh;
+}
+
+.title {
+  font-family: "hobby-of-night";
+  font-size: 5vh;
+  color: #222;
+}
+
+.subtitle {
+  font-size: 2vh;
+  color: #666;
+  text-align: center;
+}
+
+.discordButton {
+  background-color: #5865F2;
+  color: white;
+  border: none;
+  border-radius: 1vh;
+  padding: 1.5vh 4vh;
+  font-size: 2vh;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.discordButton:hover {
+  background-color: #4752C4;
+}
+
+.skipButton {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.6vh;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.skipButton:hover {
+  color: #555;
+}

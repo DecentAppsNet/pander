@@ -68,3 +68,12 @@ Example: `* tellaStyle=og`
 * Artist=30
 * Hodler=20
 * cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
+
+# Rap Battle
+
+* Clown=5
+* Jock=5
+* Mogger=5
+* Barber=5
+* tellaStyle=og
+* cards=Opening Diss|Bars Over Looks|Momma Jokes|Street Cred|Brain Drain|Mic Drop

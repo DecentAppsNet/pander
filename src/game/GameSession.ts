@@ -33,7 +33,7 @@ class GameSession {
   private _onEndLevel:EndLevelCallback = _endLevelNoOp;
   private _averageHappiness:number = DEFAULT_HAPPINESS;
   private _wordUsageHistory:WordUsageHistory = {};
-  private _deck:Deck = { cards:[], activeCardNo: 0 };
+  private _deck:Deck = { cards:[], activeCardNo: 0, score: 0 };
   private _cardPlayerTexts:string[] = []; // De-duped, high-quality speech associated with the active card.
 
   constructor(onSetHappiness:SetHappinessCallback, onAverageHappinessChange:AverageHappinessChangeCallback, 

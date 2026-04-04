@@ -86,3 +86,45 @@
 * eval0=i guess that's it|thanks i think|let's go little bumpy
 * eval50=thank you all for listening|please consider supporting us|we appreciate your time
 * eval100=thank you everyone remember to vote|what a great night don't forget to vote|i love you everyone and i hope you support me in the election|peace out remember to vote
+
+# Opening Diss
+
+* title=Opening Diss
+* type=Topic
+* description=Open the battle. Let them know they're outmatched.
+* keywordGoals=weak|soft|basic|amateur|trash|clown|fraud|joke|lame|wack
+
+# Bars Over Looks
+
+* title=Bars Over Looks
+* type=Topic
+* description=Roast their appearance. Style, face, whatever you see.
+* keywordGoals=ugly|mirror|face|style|fashion|haircut|crusty|outfit|goofy|dusty
+
+# Momma Jokes
+
+* title=Momma Jokes
+* type=Topic
+* description=Classic momma jokes. Keep it creative.
+* keywordGoals=momma|mother|house|cooking|raised|family|basement|couch|dinner|kitchen
+
+# Street Cred
+
+* title=Street Cred
+* type=Topic
+* description=Question their authenticity. Are they even real?
+* keywordGoals=real|authentic|streets|hustle|grind|earned|respect|legacy|fake|pretend
+
+# Brain Drain
+
+* title=Brain Drain
+* type=Topic
+* description=Call out their intelligence. Or lack of it.
+* keywordGoals=brain|stupid|dumb|school|grade|spell|count|read|clueless|lost
+
+# Mic Drop
+
+* title=Mic Drop
+* type=Topic
+* description=Finish them off. Close the show.
+* keywordGoals=done|finished|over|destroyed|buried|silence|bow|exit|goodbye|peace

@@ -23,7 +23,7 @@ function _nextKey():string {
 }
 
 function _createEmptyDeck():Deck {
-  return { cards:[], activeCardNo:0 };
+  return { cards:[], activeCardNo:0, score:0 };
 }
 
 async function _createCard(cardId:string):Promise<Card|null> {
@@ -40,7 +40,7 @@ async function _createCard(cardId:string):Promise<Card|null> {
 
 export async function createDeckForLevel(level:Level):Promise<Deck> {
   if (level.cardIds.length === 0) return _createEmptyDeck();
-  const deck:Deck = { cards:[], activeCardNo:0 };
+  const deck:Deck = { cards:[], activeCardNo:0, score:0 };
   for(let i = 0; i < level.cardIds.length; ++i) {
     const card = await _createCard(level.cardIds[i]);
     if (card) deck.cards.push(card);
