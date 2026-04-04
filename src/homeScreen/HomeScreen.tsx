@@ -63,11 +63,11 @@ function HomeScreen() {
       <div className={styles.content}>
         <LevelSelector selectedLevelId={levelId} onSelect={setLevelId} />
         <AudienceView characterSpriteset={characterSpriteset} audienceMembers={audienceMembers} />
+        <CardHandBox deck={deck} />
         <ChatInputBox recentPrompts={recentPrompts} onSubmit={promptFromChatInput} onToggleSpeech={ () => {
           if (!isSpeechAvailable()) { setModalDialogName(MicrophonePermissionDialog.name); return; }
           setIsSpeechEnabled(toggleSpeech());
         }} isSpeechEnabled={isSpeechEnabled}/>
-        <CardHandBox deck={deck} />
       </div>
       <div className={styles.infoPanel}>
         <HappinessMeter happiness={averageHappiness} />
