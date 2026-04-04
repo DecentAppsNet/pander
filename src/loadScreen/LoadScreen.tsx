@@ -28,7 +28,7 @@ function LoadScreen(props:Props) {
       return;
     }
     startLoadingModel(modelId, setPercentComplete, setCurrentTask)
-      .then((isInitialized) => { if (isInitialized) onComplete(); });
+      .then(() => onComplete());
   }, [isReadyToLoad, modelId]);
 
   const statusContent = wasLoadCancelled ? (
@@ -55,7 +55,7 @@ function LoadScreen(props:Props) {
         modelId={modelId}
         problems={problems}
         onConfirm={() => {setModalDialogName(null); setIsReadyToLoad(true); }}
-        onCancel={() => {setModalDialogName(null); setWasLoadCancelled(true); }}
+        onCancel={() => {setModalDialogName(null); onComplete(); }}
       />
       <AboutDialog
         isOpen={modalDialogName === AboutDialog.name}

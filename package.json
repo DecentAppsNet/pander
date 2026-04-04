@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
-    "@mediapipe/tasks-genai": "^0.10.26",
+    "@mediapipe/tasks-genai": "^0.10.27",
     "@mlc-ai/web-llm": "^0.2.82",
     "@mlc-ai/web-runtime": "^0.18.0-dev2",
     "@mlc-ai/web-tokenizers": "^0.1.6",

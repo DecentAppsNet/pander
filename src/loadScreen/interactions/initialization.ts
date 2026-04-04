@@ -22,13 +22,18 @@ function _findPercentCompleteFromStatus(status:string):number|null {
 // Returns true if model is ready to load, false if there are problems.
 export async function init(setModelId:Function, setProblems:Function, setModalDialogName:Function):Promise<boolean> {
   const modelId = await findBestModel();
-  setModelId(modelId);
-  if (modelId === 'None') return true;
+  if (modelId === 'None') {
+    setModelId(modelId);
+    return true;
+  }
   const problems = await predictModelDeviceProblems(modelId);
-  if (!problems) return true;
-  setProblems(problems);
-  setModalDialogName(ModelDeviceProblemsDialog.name);
-  return false;
+  if (!problems) {
+    setModelId(modelId);
+    return true;
+  }
+  // Skip model loading entirely if there are problems — game doesn't require an LLM.
+  setModelId('None');
+  return true;
 }
 
 export async function startLoadingModel(modelId:string, setPercentComplete:Function, setCurrenTask:Function):Promise<boolean> {
