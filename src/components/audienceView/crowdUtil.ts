@@ -107,7 +107,7 @@ export function drawCrowd(crowdDrawState:CrowdDrawState, context:CanvasRendering
   crowdDrawState.characterDrawStates.forEach(characterDrawState => drawCharacter(characterDrawState, context));
 }
 
-export function updateCharacterHappiness(characterId:string, happiness:number, crowdDrawState:CrowdDrawState|null) {
+export function updateCharacterHappiness(characterId:string, triggerWord:string, happiness:number, crowdDrawState:CrowdDrawState|null) {
   if (!crowdDrawState) return;
   const now = performance.now();
   crowdDrawState.characterDrawStates.forEach(characterDrawState => {
@@ -117,5 +117,6 @@ export function updateCharacterHappiness(characterId:string, happiness:number, c
     characterDrawState.nextMoodIconDisplayTime = now;
     characterDrawState.nextBodyFrameChangeTime = now;
     characterDrawState.nextFlashTime = now;
+    characterDrawState.nextFlashText = triggerWord;
   });
 }

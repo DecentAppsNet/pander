@@ -1,4 +1,5 @@
 type SetHappinessEvent = {
   characterId:string,
-  happiness:number
+  happiness:number,
+  triggerWord:string
 }

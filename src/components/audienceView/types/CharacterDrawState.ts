@@ -10,6 +10,7 @@ type CharacterDrawState = {
   nextBodyFrameChangeTime:number,
   nextMoodIconDisplayTime:number
   nextFlashTime:number,
+  nextFlashText:string,
   isNextFlashPositive:boolean
 }
 

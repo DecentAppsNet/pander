@@ -13,7 +13,7 @@ import { assertNonNullable } from "decent-portal";
 import LevelResults from "./types/LevelResults";
 import HappinessChange from "./types/HappinessChange";
 
-const _setHappinessNoOp:SetHappinessCallback = (_c:string, _h:number) => { console.warn('setHappiness() not bound in game session.'); }
+const _setHappinessNoOp:SetHappinessCallback = (_c:string, _t:string, _h:number) => { console.warn('setHappiness() not bound in game session.'); }
 const _averageHappinessChangeNoOp:AverageHappinessChangeCallback = (_h:number) => { console.warn('onAverageHappinessChange() not bound in game session.'); } 
 const _deckChangedNoOp:DeckChangedCallback = (_d:Deck) => { console.warn('onDeckChanged() not bound in game session.'); }
 const _endLevelNoOp:EndLevelCallback = (_lr:LevelResults) => { console.warn('onEndLevel() not bound in game session.'); }
