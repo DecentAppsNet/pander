@@ -15,7 +15,7 @@ export function parseBasePathFromUriPath(path:string) {
 
 /* v8 ignore next */ // Web-DOM-specific code that is not useful to test.
 function _getBasePath() {
-  if (!theBasePath) { theBasePath = parseBasePathFromUriPath(window.location.pathname); }
+  if (!theBasePath) { theBasePath = import.meta.env.BASE_URL; }
   return theBasePath;
 }
 

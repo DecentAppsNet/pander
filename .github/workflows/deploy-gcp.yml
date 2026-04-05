@@ -28,6 +28,7 @@ jobs:
         run: npm run build
         env:
           VITE_SERVER_URL: https://pander-server-549852174456.us-central1.run.app
+          VITE_BASE_PATH: /santyx-landing/turkey/
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2

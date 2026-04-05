@@ -32,5 +32,10 @@ export async function initApp() {
   });
 
 
-  await initAppMetaData(); // Useful to have app metadata ready before the app starts because DecentBar needs it.
+  try {
+    await initAppMetaData();
+  } catch {
+    // initAppMetaData may fail on GCS where decent-portal's internal baseUrl
+    // computes the wrong path. Non-critical — app can still function without it.
+  }
 }
