@@ -16,7 +16,7 @@ import { initSpeech, enableSpeech } from "@/speech/speechUtil";
 import { getSpeechPreference } from "@/common/speechPreference";
 import ToastPane from "@/components/toasts/ToastPane";
 import { CrowdComposition } from "@/multiplayer/types/Challenge";
-import { connectToGame, sendGameMessage, disconnectFromGame } from "@/multiplayer/gameClient";
+import { submitScore } from "@/multiplayer/gameClient";
 
 type Props = {
   player1Name: string;
@@ -25,6 +25,8 @@ type Props = {
   crowdComposition?: CrowdComposition[];
   gameId?: string | null;
   playerId?: string | null;
+  isChallenger?: boolean;
+  opponentScore?: number | null;
   onExit: () => void;
 };
 
@@ -61,7 +63,7 @@ function LocalVideo() {
   );
 }
 
-function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onExit }: Props) {
+function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, isChallenger, opponentScore, onExit }: Props) {
   const isMultiplayer = !!(gameId && playerId);
   const [characterSpriteset, setCharacterSpriteset] = useState<CharacterSpriteset | null>(null);
   const [audienceMembers, setAudienceMembers] = useState<AudienceMember[]>([]);
@@ -93,6 +95,8 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
     });
   }, []);
 
+  const [scoreSubmitted, setScoreSubmitted] = useState<boolean>(false);
+
   const onBattleEnd: BattleEndCallback = useCallback((players: BattlePlayer[], winIdx: number) => {
     setBattleOver(true);
     setWinner(players);
@@ -101,7 +105,16 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-  }, []);
+
+    // In async multiplayer, submit our score to the server
+    if (isMultiplayer && gameId && playerId) {
+      const myPlayerIndex = isChallenger ? 0 : 1;
+      const myScore = players[myPlayerIndex].score;
+      submitScore(gameId, playerId, myScore)
+        .then(() => setScoreSubmitted(true))
+        .catch(err => console.error('Failed to submit score:', err));
+    }
+  }, [isMultiplayer, gameId, playerId, isChallenger]);
 
   const onTurnChanged: TurnChangedCallback = useCallback(
     (playerIdx: number, card: Card | null, turnNum: number, totalT: number) => {
@@ -134,6 +147,11 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
       );
       sessionRef.current = session;
 
+      // In async multiplayer, each player only plays 1 turn
+      if (isMultiplayer) {
+        session.setSingleTurnMode();
+      }
+
       const level = await session.startBattle(levelId, player1Name, player2Name);
       setAudienceMembers(level.audienceMembers);
       setIsReady(true);
@@ -143,21 +161,11 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
         await initSpeech(
           (text: string) => {
             session.prompt(text);
-            if (isMultiplayer) sendGameMessage({ type: 'PROMPT', text });
           },
           (_text: string) => { /* onStopTalking */ }
         );
         enableSpeech();
         setIsSpeechEnabled(true);
-      }
-
-      // Connect to game server for multiplayer
-      if (isMultiplayer) {
-        connectToGame(gameId!, playerId!, (msg: any) => {
-          if (msg.type === 'PROMPT' && sessionRef.current) {
-            sessionRef.current.prompt(msg.text);
-          }
-        });
       }
     }
     _init();
@@ -165,7 +173,6 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
     return () => {
       if (sessionRef.current) sessionRef.current.destroy();
       if (timerRef.current) clearInterval(timerRef.current);
-      if (isMultiplayer) disconnectFromGame();
     };
   }, [levelId, player1Name, player2Name]);
 
@@ -190,10 +197,6 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
   function _onEndTurn() {
     if (!sessionRef.current || battleOver) return;
     sessionRef.current.endTurn();
-    if (isMultiplayer) {
-      sendGameMessage({ type: 'END_TURN' });
-      sendGameMessage({ type: 'SCORE_UPDATE', totalScore: sessionRef.current.players[activePlayerIndex].score });
-    }
   }
 
   if (!isReady) {
@@ -201,6 +204,62 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onE
   }
 
   if (battleOver && winner) {
+    const myScore = isMultiplayer
+      ? (isChallenger ? winner[0].score : winner[1].score)
+      : null;
+    const theirScore = isMultiplayer ? opponentScore : null;
+    const isAsyncWaiting = isMultiplayer && isChallenger && theirScore === null;
+    const isAsyncComplete = isMultiplayer && !isChallenger && theirScore !== null;
+
+    if (isAsyncWaiting) {
+      // Challenger finished — opponent hasn't played yet
+      return (
+        <div className={styles.gameOver}>
+          <h2 className={styles.gameOverTitle}>Turn Complete!</h2>
+          <div className={styles.finalScores}>
+            <div className={styles.winnerScore}>
+              <span className={styles.playerLabel}>{player1Name}</span>
+              <span className={styles.scoreValue}>{myScore}</span>
+            </div>
+          </div>
+          <p style={{ color: '#ccc', fontSize: '2vh', textAlign: 'center', marginTop: '2vh' }}>
+            {scoreSubmitted
+              ? `Score submitted! Waiting for ${player2Name} to take their turn.`
+              : 'Submitting score...'}
+          </p>
+          <button className={styles.exitButton} onClick={onExit}>Back to Menu</button>
+        </div>
+      );
+    }
+
+    if (isAsyncComplete) {
+      // Defender finished — show both scores
+      const defenderScore = myScore!;
+      const challengerScore = theirScore!;
+      const defenderWins = defenderScore >= challengerScore;
+      return (
+        <div className={styles.gameOver}>
+          <h2 className={styles.gameOverTitle}>Battle Over!</h2>
+          <div className={styles.finalScores}>
+            <div className={defenderWins ? styles.loserScore : styles.winnerScore}>
+              <span className={styles.playerLabel}>{player2Name}</span>
+              <span className={styles.scoreValue}>{challengerScore}</span>
+            </div>
+            <span className={styles.vs}>vs</span>
+            <div className={defenderWins ? styles.winnerScore : styles.loserScore}>
+              <span className={styles.playerLabel}>{player1Name}</span>
+              <span className={styles.scoreValue}>{defenderScore}</span>
+            </div>
+          </div>
+          <h3 className={styles.winnerName}>
+            {defenderWins ? player1Name : player2Name} wins!
+          </h3>
+          <button className={styles.exitButton} onClick={onExit}>Back to Menu</button>
+        </div>
+      );
+    }
+
+    // Local/solo battle — original behavior
     return (
       <div className={styles.gameOver}>
         <h2 className={styles.gameOverTitle}>Battle Over!</h2>

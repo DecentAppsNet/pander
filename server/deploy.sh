@@ -14,7 +14,7 @@ if [ -z "${DISCORD_BOT_TOKEN:-}" ]; then
 fi
 
 DISCORD_CHANNEL_ID="1490106415472443584"
-CLIENT_ORIGIN="https://santyx.co"
+CLIENT_ORIGIN="https://santyx.co,https://storage.googleapis.com"
 PROJECT="turkey-666"
 REGION="us-central1"
 SERVICE_NAME="pander-server"
@@ -27,7 +27,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --source . \
   --region "$REGION" \
   --allow-unauthenticated \
-  --set-env-vars "CLIENT_ORIGIN=$CLIENT_ORIGIN,DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN,DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID" \
+  --set-env-vars "^|^CLIENT_ORIGIN=$CLIENT_ORIGIN|DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN|DISCORD_CHANNEL_ID=$DISCORD_CHANNEL_ID" \
   --timeout=3600 \
   --session-affinity
 

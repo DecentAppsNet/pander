@@ -7,9 +7,9 @@ import AboutDialog from "./homeScreen/dialogs/AboutDialog";
 import Player from "./multiplayer/types/Player";
 import { CrowdComposition } from "./multiplayer/types/Challenge";
 import { getStoredPlayer, handleDiscordCallback } from "./multiplayer/discordAuth";
-import { createChallenge, getGame, connectToGame, disconnectFromGame } from "./multiplayer/gameClient";
+import { createChallenge, getGame } from "./multiplayer/gameClient";
 
-type AppScreen = 'login' | 'menu' | 'battle' | 'waiting';
+type AppScreen = 'login' | 'menu' | 'battle';
 
 const BATTLE_LEVEL_ID = 'Rap Battle';
 
@@ -20,6 +20,8 @@ function App() {
   const [battleCrowd, setBattleCrowd] = useState<CrowdComposition[]>([]);
   const [battleOpponent, setBattleOpponent] = useState<string>('Player 2');
   const [gameId, setGameId] = useState<string | null>(null);
+  const [isChallenger, setIsChallenger] = useState<boolean>(false);
+  const [challengerScore, setChallengerScore] = useState<number | null>(null);
 
   useEffect(() => {
     async function _checkAuth() {
@@ -40,8 +42,12 @@ function App() {
         try {
           const game = await getGame(joinGameId);
           setGameId(joinGameId);
+          setIsChallenger(false);
           setBattleOpponent(game.challengerName);
           setBattleCrowd(game.crowdComposition || []);
+          if (game.scores && game.scores[game.challengerId] !== undefined) {
+            setChallengerScore(game.scores[game.challengerId]);
+          }
           setScreen('battle');
           return;
         } catch (e) {
@@ -82,7 +88,9 @@ function App() {
           BATTLE_LEVEL_ID,
         );
         setGameId(result.gameId);
-        setScreen('waiting');
+        setIsChallenger(true);
+        setChallengerScore(null);
+        setScreen('battle');
         return;
       } catch (e) {
         console.error('Failed to create challenge, starting local battle:', e);
@@ -116,17 +124,6 @@ function App() {
         />
       );
 
-    case 'waiting':
-      return (
-        <WaitingScreen
-          opponentName={battleOpponent}
-          gameId={gameId!}
-          playerId={player?.discordId ?? ''}
-          onGameStart={() => setScreen('battle')}
-          onCancel={() => { setGameId(null); setScreen('menu'); }}
-        />
-      );
-
     case 'battle':
       return (
         <BattleScreen
@@ -136,55 +133,12 @@ function App() {
           crowdComposition={battleCrowd}
           gameId={gameId}
           playerId={player?.discordId ?? null}
+          isChallenger={isChallenger}
+          opponentScore={challengerScore}
           onExit={() => { setGameId(null); setScreen('menu'); }}
         />
       );
   }
-}
-
-// Waiting screen — shown after challenge is sent, waiting for opponent to join
-function WaitingScreen({ opponentName, gameId, playerId, onGameStart, onCancel }: {
-  opponentName: string;
-  gameId: string;
-  playerId: string;
-  onGameStart: () => void;
-  onCancel: () => void;
-}) {
-  useEffect(() => {
-    connectToGame(gameId, playerId, (msg: any) => {
-      if (msg.type === 'GAME_START') {
-        onGameStart();
-      }
-    });
-    return () => disconnectFromGame();
-  }, [gameId, playerId]);
-
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      height: '100dvh', maxWidth: 480, margin: '0 auto', background: '#1a1a2e', color: 'white', gap: '2vh', padding: '3vh',
-    }}>
-      <h2 style={{ fontFamily: 'hobby-of-night', fontSize: '4vh', color: '#e94560' }}>Challenge Sent!</h2>
-      <p style={{ fontSize: '2vh', color: '#ccc', textAlign: 'center' }}>
-        Waiting for <strong>{opponentName}</strong> to join...
-      </p>
-      <p style={{ fontSize: '1.5vh', color: '#888' }}>
-        A link was posted in the Discord channel
-      </p>
-      <div style={{
-        padding: '1.5vh 3vh', background: '#16213e', borderRadius: '1vh',
-        border: '1px solid #333', fontSize: '1.4vh', color: '#aaa', wordBreak: 'break-all', textAlign: 'center',
-      }}>
-        Game ID: {gameId}
-      </div>
-      <button onClick={onCancel} style={{
-        marginTop: '2vh', padding: '1vh 4vh', background: 'none', border: '1px solid #555',
-        borderRadius: '1vh', color: '#aaa', fontSize: '1.8vh', cursor: 'pointer',
-      }}>
-        Cancel
-      </button>
-    </div>
-  );
 }
 
 export default App;

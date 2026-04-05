@@ -4,7 +4,11 @@ import { initAppMetaData } from "decent-portal";
 // Don't reference the DOM. Avoid any work that could instead be done in the loading screen or someplace else
 export async function initApp() {
   if ('serviceWorker' in navigator) {
-    await navigator.serviceWorker.register(baseUrl('/serviceWorker.js'));
+    try {
+      await navigator.serviceWorker.register(baseUrl('/serviceWorker.js'));
+    } catch {
+      // Service worker registration may fail on cross-origin hosts (e.g. GCS)
+    }
   }
 
   // Patch Object.prototype to give the "None" model a dummy memory size, 

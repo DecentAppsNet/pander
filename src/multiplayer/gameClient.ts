@@ -33,6 +33,16 @@ export async function getGame(gameId: string): Promise<any> {
   return res.json();
 }
 
+export async function submitScore(gameId: string, playerId: string, score: number): Promise<{ scores: Record<string, number>; status: string }> {
+  const res = await fetch(`${SERVER_URL}/api/game/${gameId}/score`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ playerId, score }),
+  });
+  if (!res.ok) throw Error(`Score submit failed: ${res.status}`);
+  return res.json();
+}
+
 export async function getPlayerGames(playerId: string): Promise<any[]> {
   const res = await fetch(`${SERVER_URL}/api/games?playerId=${playerId}`);
   if (!res.ok) return [];

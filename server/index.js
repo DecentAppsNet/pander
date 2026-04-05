@@ -89,8 +89,7 @@ app.post('/api/challenge', async (req, res) => {
 
   games.set(gameId, game);
 
-  const clientOrigin = CLIENT_ORIGINS[0];
-  const joinLink = `${clientOrigin}/turkey/?id=${gameId}`;
+  const joinLink = `https://storage.googleapis.com/santyx-landing/turkey/index.html?id=${gameId}`;
   const discordMsg = `🎤 **${challengerName}** challenges **${defenderName}** to a rap battle!\n👉 ${joinLink}`;
   await postDiscordMessage(discordMsg);
 
@@ -102,6 +101,28 @@ app.get('/api/game/:gameId', (req, res) => {
   const game = games.get(req.params.gameId);
   if (!game) return res.status(404).json({ error: 'Game not found' });
   res.json(game);
+});
+
+// Submit a player's score after their turn
+app.post('/api/game/:gameId/score', (req, res) => {
+  const game = games.get(req.params.gameId);
+  if (!game) return res.status(404).json({ error: 'Game not found' });
+
+  const { playerId, score } = req.body;
+  if (!playerId || score === undefined) return res.status(400).json({ error: 'Missing playerId or score' });
+
+  if (!game.scores) game.scores = {};
+  game.scores[playerId] = score;
+
+  // If both players have submitted scores, mark game as finished
+  const scoreCount = Object.keys(game.scores).length;
+  if (scoreCount >= 2) {
+    game.status = 'finished';
+  } else {
+    game.status = 'waiting_for_defender';
+  }
+
+  res.json({ scores: game.scores, status: game.status });
 });
 
 // List active games for a player

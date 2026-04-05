@@ -42,6 +42,7 @@ class BattleSession {
   private _totalTurns: number = ROUNDS_PER_PLAYER * 2;
   private _turnTimer: ReturnType<typeof setTimeout> | null = null;
   private _isBattleOver: boolean = false;
+  private _singleTurnMode: boolean = false;
 
   constructor(
     onSetHappiness: SetHappinessCallback,
@@ -66,6 +67,10 @@ class BattleSession {
   get averageHappiness(): number { return this._averageHappiness; }
   get isBattleOver(): boolean { return this._isBattleOver; }
 
+  setSingleTurnMode() {
+    this._singleTurnMode = true;
+  }
+
   async startBattle(levelId: string, player1Name: string, player2Name: string): Promise<Level> {
     this._players = [
       { name: player1Name, score: 0, isLocal: true },
@@ -77,7 +82,7 @@ class BattleSession {
     this._averageHappiness = calcAverageHappiness(this._audienceMembers);
     this._wordUsageHistory = {};
     this._deck = await createDeckForLevel(level);
-    this._totalTurns = Math.min(ROUNDS_PER_PLAYER * 2, this._deck.cards.length);
+    this._totalTurns = this._singleTurnMode ? 1 : Math.min(ROUNDS_PER_PLAYER * 2, this._deck.cards.length);
     this._turnNumber = 0;
     this._activePlayerIndex = 0;
     this._isBattleOver = false;
