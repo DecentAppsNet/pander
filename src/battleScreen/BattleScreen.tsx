@@ -5,40 +5,74 @@ import AudienceView from "@/components/audienceView/AudienceView";
 import AudienceMember from "@/game/types/AudienceMember";
 import CharacterSpriteset from "@/components/audienceView/types/CharacterSpriteset";
 import { loadCharacterSpriteset } from "@/components/audienceView/characterSpriteUtil";
-import ChatInputBox from "@/components/chat/ChatInputBox";
 import CardHandBox from "@/components/cardHandBox/CardHandBox";
-import HappinessMeter from "@/components/happinessMeter/HappinessMeter";
 import Deck from "@/game/types/cards/Deck";
 import BattleSession, { BattleEndCallback, BattlePlayer, TurnEndCallback, TurnChangedCallback, TURN_DURATION_MS } from "@/game/BattleSession";
 import { setHappiness } from "@/components/audienceView/audienceEventUtil";
 import Card from "@/game/types/cards/Card";
 import { TurnScore } from "@/game/battleScoringUtil";
 import { DEFAULT_HAPPINESS } from "@/game/happinessUtil";
-import { appendRecentPrompt } from "@/persistence/recentPrompts";
-import { isSpeechAvailable, toggleSpeech } from "@/speech/speechUtil";
+import { initSpeech, enableSpeech } from "@/speech/speechUtil";
+import { getSpeechPreference } from "@/common/speechPreference";
 import ToastPane from "@/components/toasts/ToastPane";
 import { CrowdComposition } from "@/multiplayer/types/Challenge";
+import { connectToGame, sendGameMessage, disconnectFromGame } from "@/multiplayer/gameClient";
 
 type Props = {
   player1Name: string;
   player2Name: string;
   levelId: string;
   crowdComposition?: CrowdComposition[];
+  gameId?: string | null;
+  playerId?: string | null;
   onExit: () => void;
 };
 
-function BattleScreen({ player1Name, player2Name, levelId, onExit }: Props) {
+function LocalVideo() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [hasStream, setHasStream] = useState(false);
+
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ video: { width: 160, height: 120, frameRate: 15 }, audio: false })
+      .then(stream => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setHasStream(true);
+        }
+      })
+      .catch(() => setHasStream(false));
+
+    return () => {
+      if (videoRef.current?.srcObject) {
+        (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  return (
+    <video
+      ref={videoRef}
+      className={styles.localVideo}
+      autoPlay
+      muted
+      playsInline
+      style={{ display: hasStream ? 'block' : 'none' }}
+    />
+  );
+}
+
+function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, onExit }: Props) {
+  const isMultiplayer = !!(gameId && playerId);
   const [characterSpriteset, setCharacterSpriteset] = useState<CharacterSpriteset | null>(null);
   const [audienceMembers, setAudienceMembers] = useState<AudienceMember[]>([]);
   const [deck, setDeck] = useState<Deck | null>(null);
-  const [averageHappiness, setAverageHappiness] = useState<number>(DEFAULT_HAPPINESS);
+  const [_averageHappiness, setAverageHappiness] = useState<number>(DEFAULT_HAPPINESS);
   const [activePlayerIndex, setActivePlayerIndex] = useState<number>(0);
   const [turnNumber, setTurnNumber] = useState<number>(0);
   const [totalTurns, setTotalTurns] = useState<number>(6);
   const [scores, setScores] = useState<number[]>([0, 0]);
   const [_activeCard, setActiveCard] = useState<Card | null>(null);
-  const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
-  const [isSpeechEnabled, setIsSpeechEnabled] = useState<boolean>(false);
+  const [_isSpeechEnabled, setIsSpeechEnabled] = useState<boolean>(getSpeechPreference());
   const [battleOver, setBattleOver] = useState<boolean>(false);
   const [winner, setWinner] = useState<BattlePlayer[] | null>(null);
   const [winnerIndex, setWinnerIndex] = useState<number>(0);
@@ -103,12 +137,35 @@ function BattleScreen({ player1Name, player2Name, levelId, onExit }: Props) {
       const level = await session.startBattle(levelId, player1Name, player2Name);
       setAudienceMembers(level.audienceMembers);
       setIsReady(true);
+
+      // Auto-enable speech if preference is set (default on mobile)
+      if (getSpeechPreference()) {
+        await initSpeech(
+          (text: string) => {
+            session.prompt(text);
+            if (isMultiplayer) sendGameMessage({ type: 'PROMPT', text });
+          },
+          (_text: string) => { /* onStopTalking */ }
+        );
+        enableSpeech();
+        setIsSpeechEnabled(true);
+      }
+
+      // Connect to game server for multiplayer
+      if (isMultiplayer) {
+        connectToGame(gameId!, playerId!, (msg: any) => {
+          if (msg.type === 'PROMPT' && sessionRef.current) {
+            sessionRef.current.prompt(msg.text);
+          }
+        });
+      }
     }
     _init();
 
     return () => {
       if (sessionRef.current) sessionRef.current.destroy();
       if (timerRef.current) clearInterval(timerRef.current);
+      if (isMultiplayer) disconnectFromGame();
     };
   }, [levelId, player1Name, player2Name]);
 
@@ -130,16 +187,13 @@ function BattleScreen({ player1Name, player2Name, levelId, onExit }: Props) {
     };
   }, [isReady, battleOver, turnNumber]);
 
-  async function _onSubmit(text: string) {
-    if (!sessionRef.current || battleOver) return;
-    const prompts = await appendRecentPrompt(text);
-    setRecentPrompts(prompts);
-    await sessionRef.current.prompt(text);
-  }
-
   function _onEndTurn() {
     if (!sessionRef.current || battleOver) return;
     sessionRef.current.endTurn();
+    if (isMultiplayer) {
+      sendGameMessage({ type: 'END_TURN' });
+      sendGameMessage({ type: 'SCORE_UPDATE', totalScore: sessionRef.current.players[activePlayerIndex].score });
+    }
   }
 
   if (!isReady) {
@@ -196,19 +250,19 @@ function BattleScreen({ player1Name, player2Name, levelId, onExit }: Props) {
         </div>
       </div>
 
+      {/* Camera — opponent view (top right, above audience) */}
+      <div className={styles.cameraBar}>
+        <LocalVideo />
+      </div>
+
       {/* Audience */}
       <div className={styles.audienceArea}>
         <AudienceView characterSpriteset={characterSpriteset} audienceMembers={audienceMembers} />
       </div>
 
-      {/* Card + Happiness */}
+      {/* Card */}
       <div className={styles.cardArea}>
-        <div className={styles.cardSection}>
-          <CardHandBox deck={deck} />
-        </div>
-        <div className={styles.happinessSection}>
-          <HappinessMeter happiness={averageHappiness} />
-        </div>
+        <CardHandBox deck={deck} />
       </div>
 
       {/* Last turn score */}
@@ -218,17 +272,8 @@ function BattleScreen({ player1Name, player2Name, levelId, onExit }: Props) {
         </div>
       )}
 
-      {/* Input area */}
+      {/* Controls */}
       <div className={styles.inputArea}>
-        <ChatInputBox
-          recentPrompts={recentPrompts}
-          onSubmit={_onSubmit}
-          isSpeechEnabled={isSpeechEnabled}
-          onToggleSpeech={() => {
-            if (!isSpeechAvailable()) return;
-            setIsSpeechEnabled(toggleSpeech());
-          }}
-        />
         <button className={styles.endTurnButton} onClick={_onEndTurn}>
           End Turn
         </button>

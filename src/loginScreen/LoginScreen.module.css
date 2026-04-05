@@ -1,6 +1,9 @@
 .container {
   display: grid;
   height: 100vh;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
   grid-template-rows: 10vh 1fr;
   grid-template-areas:
     "header"

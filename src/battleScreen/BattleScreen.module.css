@@ -1,9 +1,11 @@
-/* Mobile-first battle layout — designed for phone viewport */
+/* Mobile-first battle layout — designed for phone viewport (portrait ~390x844) */
 .container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
   background: #1a1a2e;
   color: white;
   overflow: hidden;
@@ -78,32 +80,39 @@
   color: white;
 }
 
+/* Camera bar — sits above audience, right-aligned */
+.cameraBar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.5vh 2vw;
+  background: #111;
+}
+
+.localVideo {
+  width: 28vw;
+  max-width: 130px;
+  border-radius: 1vh;
+  border: 2px solid #e94560;
+  object-fit: cover;
+  aspect-ratio: 4/3;
+  background: #000;
+}
+
 /* Audience */
 .audienceArea {
   flex: 1;
   min-height: 0;
   position: relative;
+  overflow: hidden;
 }
 
-/* Card + Happiness side by side */
+/* Card */
 .cardArea {
-  display: flex;
-  align-items: stretch;
   padding: 0.5vh 1vw;
   background: #0f3460;
   min-height: 12vh;
   max-height: 14vh;
-}
-
-.cardSection {
-  flex: 1;
   overflow: hidden;
-}
-
-.happinessSection {
-  width: 8vw;
-  min-width: 30px;
-  padding-left: 1vw;
 }
 
 /* Turn score popup */
@@ -162,6 +171,8 @@
   justify-content: center;
   height: 100vh;
   height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
   background: #1a1a2e;
   color: white;
   font-size: 2.5vh;
@@ -175,6 +186,8 @@
   justify-content: center;
   height: 100vh;
   height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
   background: #1a1a2e;
   color: white;
   gap: 3vh;

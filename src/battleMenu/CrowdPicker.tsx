@@ -18,7 +18,11 @@ type Props = {
 const MAX_CROWD_SIZE = 20;
 
 function CrowdPicker({ characters, opponentName, onConfirm, onCancel }: Props) {
-  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [counts, setCounts] = useState<Record<string, number>>(() => {
+    const defaults: Record<string, number> = {};
+    for (const char of characters) defaults[char.id] = 2;
+    return defaults;
+  });
 
   const totalCount = Object.values(counts).reduce((sum, c) => sum + c, 0);
 
