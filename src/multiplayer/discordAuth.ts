@@ -5,7 +5,7 @@ import { getText, setText } from "@/persistence/pathStore";
 // Register your app at https://discord.com/developers/applications
 // Set redirect URI to your app origin (e.g., http://localhost:3000)
 const CLIENT_ID = '1490086176864993471';
-const REDIRECT_URI = `${window.location.origin}`;
+const REDIRECT_URI = `${window.location.origin}${window.location.pathname.replace(/index\.html$/, '')}`;
 const SCOPES = 'identify';
 const DISCORD_API = 'https://discord.com/api/v10';
 
