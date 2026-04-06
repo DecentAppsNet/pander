@@ -1,28 +1,19 @@
-// TopBar wraps the DecentBar with some props specific to the app. This TopBar component can be added to each screen of the app in a DRY way.
-// For DecentBar docs, see "Using the DecentBar" at https://github.com/erikh2000/decent-portal .
-import { DecentBar, defaultOnClickLink, Link } from "decent-portal";
-
-const appLinks = [
-  { description: "About", url: 'ABOUT' },
-  { description: "Support", url: "https://github.com/DecentAppsNet/pander/issues" }
-];
-
-const contributorText = 'Erik Hermansen, Peter Turner, Eduardo Worrel';
+import styles from './TopBar.module.css';
 
 type Props = {
-  onAboutClick:Function
+  onAboutClick: () => void;
 }
 
-function TopBar({onAboutClick}:Props) {
-  function _onClickLink(link:Link) {
-    if (link.url === 'ABOUT') {
-      onAboutClick();
-      return;
-    }
-    defaultOnClickLink(link);
-  }
-  
-  return <DecentBar appLinks={appLinks} contributorText={contributorText} onClickLink={_onClickLink}/>
+function TopBar({ onAboutClick }: Props) {
+  return (
+    <div className={styles.bar}>
+      <h1 className={styles.title}>Pander</h1>
+      <div className={styles.links}>
+        <button className={styles.link} onClick={onAboutClick}>About</button>
+        <a className={styles.link} href="https://github.com/Syntax753/pander/issues" target="_blank" rel="noreferrer">Support</a>
+      </div>
+    </div>
+  );
 }
 
 export default TopBar;

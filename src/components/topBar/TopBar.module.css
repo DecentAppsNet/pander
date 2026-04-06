@@ -1,0 +1,33 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1vh 2vw;
+  background: #1a1a1a;
+  color: #fff;
+  border-bottom: 1px solid #333;
+}
+
+.title {
+  font-size: 2.2vh;
+  font-weight: bold;
+  margin: 0;
+}
+
+.links {
+  display: flex;
+  gap: 2vw;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1.8vh;
+  cursor: pointer;
+  padding: 0.5vh 1vw;
+}
+
+.link:hover {
+  color: #fff;
+}
