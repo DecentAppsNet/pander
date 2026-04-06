@@ -118,8 +118,11 @@ app.post('/api/game/:gameId/score', (req, res) => {
   const scoreCount = Object.keys(game.scores).length;
   if (scoreCount >= 2) {
     game.status = 'finished';
+    broadcast(req.params.gameId, { type: 'BATTLE_FINISHED', scores: game.scores });
   } else {
     game.status = 'waiting_for_defender';
+    // Notify the *other* player that it's their turn now
+    broadcast(req.params.gameId, { type: 'OPPONENT_TURN', finishedPlayerId: playerId, score });
   }
 
   res.json({ scores: game.scores, status: game.status });
@@ -167,14 +170,16 @@ wss.on('connection', (ws, req) => {
   ws.gameId = gameId;
   ws.playerId = playerId;
 
-  // Notify all players in this game
+  // Send full game state to the joining player so they know who's challenger
+  ws.send(JSON.stringify({ type: 'GAME_STATE', game }));
+
+  // Notify all players in this game (lobby presence update)
   broadcast(gameId, { type: 'PLAYER_JOINED', playerId, playerCount: conns.length });
 
-  // If both players connected, start the game
+  // If both players connected, the lobby is full — wait for challenger to click Ready
   const playerIds = Object.keys(game.players).filter(id => game.players[id].connected);
   if (playerIds.length === 2 && game.status === 'waiting') {
-    game.status = 'active';
-    broadcast(gameId, { type: 'GAME_START', game });
+    broadcast(gameId, { type: 'LOBBY_READY', game });
   }
 
   ws.on('message', (raw) => {
@@ -182,6 +187,14 @@ wss.on('connection', (ws, req) => {
     try { msg = JSON.parse(raw); } catch { return; }
 
     switch (msg.type) {
+      case 'READY':
+        // Challenger clicked Ready — start battle, challenger plays first
+        if (playerId === game.challengerId && game.status === 'waiting') {
+          game.status = 'active';
+          broadcast(gameId, { type: 'BATTLE_START', firstPlayerId: game.challengerId });
+        }
+        break;
+
       case 'PROMPT':
         // Player spoke — relay to opponent
         relay(gameId, playerId, { type: 'PROMPT', playerId, text: msg.text, timestamp: Date.now() });

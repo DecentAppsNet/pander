@@ -16,7 +16,9 @@ import { initSpeech, enableSpeech } from "@/speech/speechUtil";
 import { getSpeechPreference } from "@/common/speechPreference";
 import ToastPane from "@/components/toasts/ToastPane";
 import { CrowdComposition } from "@/multiplayer/types/Challenge";
-import { submitScore } from "@/multiplayer/gameClient";
+import { submitScore, connectToGame, sendGameMessage, disconnectFromGame } from "@/multiplayer/gameClient";
+
+type MpStage = 'lobby_waiting' | 'lobby_ready' | 'my_turn' | 'opponent_turn' | 'finished';
 
 type Props = {
   player1Name: string;
@@ -81,6 +83,8 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, isC
   const [turnTimeLeft, setTurnTimeLeft] = useState<number>(TURN_DURATION_MS / 1000);
   const [lastTurnScore, setLastTurnScore] = useState<TurnScore | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [mpStage, setMpStage] = useState<MpStage>(isMultiplayer ? 'lobby_waiting' : 'my_turn');
+  const [opponentFinishedScore, setOpponentFinishedScore] = useState<number | null>(opponentScore ?? null);
 
   const sessionRef = useRef<BattleSession | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -106,15 +110,19 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, isC
       timerRef.current = null;
     }
 
-    // In async multiplayer, submit our score to the server
+    // In multiplayer, submit our score and transition stage
     if (isMultiplayer && gameId && playerId) {
       const myPlayerIndex = isChallenger ? 0 : 1;
       const myScore = players[myPlayerIndex].score;
       submitScore(gameId, playerId, myScore)
-        .then(() => setScoreSubmitted(true))
+        .then(() => {
+          setScoreSubmitted(true);
+          // If opponent already finished, we're done; otherwise wait
+          setMpStage(opponentFinishedScore !== null ? 'finished' : 'opponent_turn');
+        })
         .catch(err => console.error('Failed to submit score:', err));
     }
-  }, [isMultiplayer, gameId, playerId, isChallenger]);
+  }, [isMultiplayer, gameId, playerId, isChallenger, opponentFinishedScore]);
 
   const onTurnChanged: TurnChangedCallback = useCallback(
     (playerIdx: number, card: Card | null, turnNum: number, totalT: number) => {
@@ -127,54 +135,105 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, isC
     }, []
   );
 
-  // Initialize battle
+  // Load spriteset once (needed for both lobby + battle render)
   useEffect(() => {
-    async function _init() {
-      const spriteset = await loadCharacterSpriteset();
-      setCharacterSpriteset(spriteset);
+    loadCharacterSpriteset().then(setCharacterSpriteset);
+  }, []);
 
-      function _setHappiness(characterId: string, triggerWord: string, happiness: number) {
-        setHappiness(characterId, triggerWord, happiness);
-      }
+  // Start the BattleSession — only called when it's actually our turn to play
+  const startBattleSession = useCallback(async () => {
+    if (sessionRef.current) return; // already started
 
-      const session = new BattleSession(
-        _setHappiness,
-        setAverageHappiness,
-        setDeck,
-        onTurnEnd,
-        onBattleEnd,
-        onTurnChanged,
-      );
-      sessionRef.current = session;
-
-      // In async multiplayer, each player only plays 1 turn
-      if (isMultiplayer) {
-        session.setSingleTurnMode();
-      }
-
-      const level = await session.startBattle(levelId, player1Name, player2Name);
-      setAudienceMembers(level.audienceMembers);
-      setIsReady(true);
-
-      // Auto-enable speech if preference is set (default on mobile)
-      if (getSpeechPreference()) {
-        await initSpeech(
-          (text: string) => {
-            session.prompt(text);
-          },
-          (_text: string) => { /* onStopTalking */ }
-        );
-        enableSpeech();
-        setIsSpeechEnabled(true);
-      }
+    function _setHappiness(characterId: string, triggerWord: string, happiness: number) {
+      setHappiness(characterId, triggerWord, happiness);
     }
-    _init();
 
+    const session = new BattleSession(
+      _setHappiness,
+      setAverageHappiness,
+      setDeck,
+      onTurnEnd,
+      onBattleEnd,
+      onTurnChanged,
+    );
+    sessionRef.current = session;
+
+    if (isMultiplayer) {
+      session.setSingleTurnMode();
+    }
+
+    const level = await session.startBattle(levelId, player1Name, player2Name);
+    setAudienceMembers(level.audienceMembers);
+    setIsReady(true);
+
+    if (getSpeechPreference()) {
+      await initSpeech(
+        (text: string) => session.prompt(text),
+        (_text: string) => { /* onStopTalking */ }
+      );
+      enableSpeech();
+      setIsSpeechEnabled(true);
+    }
+  }, [isMultiplayer, levelId, player1Name, player2Name, onTurnEnd, onBattleEnd, onTurnChanged]);
+
+  // Solo play — start immediately. Multiplayer waits for lobby/turn coordination.
+  useEffect(() => {
+    if (!isMultiplayer) {
+      startBattleSession();
+    }
     return () => {
       if (sessionRef.current) sessionRef.current.destroy();
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [levelId, player1Name, player2Name]);
+  }, [isMultiplayer, startBattleSession]);
+
+  // Multiplayer: connect WebSocket and drive state machine via server messages
+  useEffect(() => {
+    if (!isMultiplayer || !gameId || !playerId) return;
+
+    connectToGame(gameId, playerId, (msg) => {
+      switch (msg.type) {
+        case 'GAME_STATE':
+        case 'PLAYER_JOINED':
+          // No-op; LOBBY_READY drives the transition
+          break;
+        case 'LOBBY_READY':
+          setMpStage((cur) => (cur === 'lobby_waiting' ? 'lobby_ready' : cur));
+          break;
+        case 'BATTLE_START':
+          // Challenger plays first
+          if (isChallenger) {
+            setMpStage('my_turn');
+            startBattleSession();
+          } else {
+            setMpStage('opponent_turn');
+          }
+          break;
+        case 'OPPONENT_TURN':
+          // Other player just finished — if I haven't played yet, my turn now
+          if (msg.finishedPlayerId !== playerId) {
+            setOpponentFinishedScore(msg.score ?? null);
+            if (!sessionRef.current) {
+              setMpStage('my_turn');
+              startBattleSession();
+            }
+          }
+          break;
+        case 'BATTLE_FINISHED':
+          // Both scores in — capture opponent's score for the results UI
+          if (msg.scores) {
+            const otherId = Object.keys(msg.scores).find((id) => id !== playerId);
+            if (otherId) setOpponentFinishedScore(msg.scores[otherId]);
+          }
+          setMpStage('finished');
+          break;
+      }
+    });
+
+    return () => {
+      disconnectFromGame();
+    };
+  }, [isMultiplayer, gameId, playerId, isChallenger, startBattleSession]);
 
   // Turn countdown timer
   useEffect(() => {
@@ -199,60 +258,79 @@ function BattleScreen({ player1Name, player2Name, levelId, gameId, playerId, isC
     sessionRef.current.endTurn();
   }
 
+  function _onReadyClick() {
+    sendGameMessage({ type: 'READY' });
+  }
+
+  // Multiplayer lobby/waiting screens (rendered before BattleSession exists)
+  if (isMultiplayer && (mpStage === 'lobby_waiting' || mpStage === 'lobby_ready' || mpStage === 'opponent_turn')) {
+    let title = '';
+    let subtitle = '';
+    let showReady = false;
+    if (mpStage === 'lobby_waiting') {
+      title = 'Waiting for opponent…';
+      subtitle = isChallenger
+        ? `Waiting for ${player2Name} to join.`
+        : `Connecting to ${player2Name}…`;
+    } else if (mpStage === 'lobby_ready') {
+      if (isChallenger) {
+        title = `${player2Name} is here!`;
+        subtitle = 'Click Ready to start the battle. You play first.';
+        showReady = true;
+      } else {
+        title = `Waiting for ${player2Name} to start…`;
+        subtitle = 'Challenger plays first.';
+      }
+    } else if (mpStage === 'opponent_turn') {
+      // Either we just finished and are waiting for opponent, or we haven't played yet
+      if (scoreSubmitted) {
+        title = 'Turn complete!';
+        subtitle = `Waiting for ${player2Name} to take their turn.`;
+      } else {
+        title = `${player2Name} is performing…`;
+        subtitle = 'Your turn is next.';
+      }
+    }
+    return (
+      <div className={styles.gameOver}>
+        <h2 className={styles.gameOverTitle}>{title}</h2>
+        <p style={{ color: '#ccc', fontSize: '2vh', textAlign: 'center', marginTop: '2vh' }}>{subtitle}</p>
+        {showReady && (
+          <button className={styles.exitButton} onClick={_onReadyClick}>Ready</button>
+        )}
+        <button className={styles.exitButton} onClick={onExit}>Back to Menu</button>
+      </div>
+    );
+  }
+
   if (!isReady) {
     return <div className={styles.loading}>Loading battle...</div>;
   }
 
   if (battleOver && winner) {
-    const myScore = isMultiplayer
-      ? (isChallenger ? winner[0].score : winner[1].score)
-      : null;
-    const theirScore = isMultiplayer ? opponentScore : null;
-    const isAsyncWaiting = isMultiplayer && isChallenger && theirScore === null;
-    const isAsyncComplete = isMultiplayer && !isChallenger && theirScore !== null;
-
-    if (isAsyncWaiting) {
-      // Challenger finished — opponent hasn't played yet
-      return (
-        <div className={styles.gameOver}>
-          <h2 className={styles.gameOverTitle}>Turn Complete!</h2>
-          <div className={styles.finalScores}>
-            <div className={styles.winnerScore}>
-              <span className={styles.playerLabel}>{player1Name}</span>
-              <span className={styles.scoreValue}>{myScore}</span>
-            </div>
-          </div>
-          <p style={{ color: '#ccc', fontSize: '2vh', textAlign: 'center', marginTop: '2vh' }}>
-            {scoreSubmitted
-              ? `Score submitted! Waiting for ${player2Name} to take their turn.`
-              : 'Submitting score...'}
-          </p>
-          <button className={styles.exitButton} onClick={onExit}>Back to Menu</button>
-        </div>
-      );
-    }
-
-    if (isAsyncComplete) {
-      // Defender finished — show both scores
-      const defenderScore = myScore!;
-      const challengerScore = theirScore!;
-      const defenderWins = defenderScore >= challengerScore;
+    if (isMultiplayer && mpStage === 'finished') {
+      // Both players done — compare scores
+      const myIdx = isChallenger ? 0 : 1;
+      const myScore = winner[myIdx].score;
+      const theirScore = opponentFinishedScore ?? 0;
+      const iWin = myScore > theirScore;
+      const tie = myScore === theirScore;
       return (
         <div className={styles.gameOver}>
           <h2 className={styles.gameOverTitle}>Battle Over!</h2>
           <div className={styles.finalScores}>
-            <div className={defenderWins ? styles.loserScore : styles.winnerScore}>
-              <span className={styles.playerLabel}>{player2Name}</span>
-              <span className={styles.scoreValue}>{challengerScore}</span>
+            <div className={iWin || tie ? styles.winnerScore : styles.loserScore}>
+              <span className={styles.playerLabel}>{player1Name} (you)</span>
+              <span className={styles.scoreValue}>{myScore}</span>
             </div>
             <span className={styles.vs}>vs</span>
-            <div className={defenderWins ? styles.winnerScore : styles.loserScore}>
-              <span className={styles.playerLabel}>{player1Name}</span>
-              <span className={styles.scoreValue}>{defenderScore}</span>
+            <div className={!iWin || tie ? styles.winnerScore : styles.loserScore}>
+              <span className={styles.playerLabel}>{player2Name}</span>
+              <span className={styles.scoreValue}>{theirScore}</span>
             </div>
           </div>
           <h3 className={styles.winnerName}>
-            {defenderWins ? player1Name : player2Name} wins!
+            {tie ? "It's a tie!" : iWin ? `${player1Name} wins!` : `${player2Name} wins!`}
           </h3>
           <button className={styles.exitButton} onClick={onExit}>Back to Menu</button>
         </div>
