@@ -5,7 +5,12 @@ import { getText, setText } from "@/persistence/pathStore";
 // Register your app at https://discord.com/developers/applications
 // Set redirect URI to your app origin (e.g., http://localhost:3000)
 const CLIENT_ID = '1490086176864993471';
-const REDIRECT_URI = `${window.location.origin}${window.location.pathname}`;
+// Must exactly match a redirect URI registered in the Discord developer portal.
+// Derived from Vite's BASE_URL so it is stable regardless of current location.pathname.
+const _basePath = import.meta.env.BASE_URL.endsWith('/')
+  ? `${import.meta.env.BASE_URL}index.html`
+  : import.meta.env.BASE_URL;
+const REDIRECT_URI = `${window.location.origin}${_basePath}`;
 const SCOPES = 'identify';
 const DISCORD_API = 'https://discord.com/api/v10';
 
