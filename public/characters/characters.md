@@ -22,20 +22,24 @@
 # Librarian
 
 * title=Librarian
-* description=They like knowledge and conservation.
+* description=A quiet book lover who likes order, hates noise, and gets oddly happy when everything is neat and in place.
 * bodyStartCellNo=9
 * bodyCellCount=4
-* loves=study|studying|dewey|decimal
-* likes=quiet|silence|serious|find|finding|knowledge|library|libraries|book|books
-* dislikes=loud|loudness|noise
-* hates=prank|pranks|trick|tricks|whoopie
+* loves=loves=study|studying|dewey|decimal|catalog|catalogs|cataloging|catalogue|catalogues|archival|archive|archives|index|indexes|indexing|classification|classify|classifying|preserve|preserving|preservation
+* likes=quiet|silence|serious|find|finding|knowledge|library|libraries|book|books|read|reading|shelf|shelves|organize|organizing|order|research|researching|reference|references|referencing|borrow|borrowing|return|returning
+* dislikes=loud|loudness|noise|mess|messy|disorder|disorganized|talking|chatting|interrupt|interrupting
+* hates=prank|pranks|trick|tricks|whoopie|graffiti|deface|defacing|damage|damaging|misplace|misplacing|overdue|tear|tearing|stain|staining
 
 # Jock
 
 * title=Jock
-* description=Sports!
+* description=A loud sports fan who loves winning, showing off, and gets way too excited about games, teams, and competition.
 * bodyStartCellNo=13
 * bodyCellCount=4
+* loves=touchdown|touchdowns|interception|interceptions|victory|victories|championship|championships|dominate|dominating|crush|crushing|score|scoring
+* likes=sports|game|games|team|teams|win|winning|practice|practicing|train|training|coach|coaches|locker|lockers|jersey|jerseys|tackle|tackles|pass|passes|throw|throwing
+* dislikes=study|studying|homework|reading|class|classes|school|schools|library|libraries|quiet|silence|math
+* hates=nerd|nerds|geek|geeks|detention|essay|essays|exam|exams|test|tests|fail|failing
 
 # Barber
 
@@ -51,7 +55,7 @@
 * bodyStartCellNo=21
 * bodyCellCount=4
 * loves=balloon|balloons|makeup|hats|hat|shoe|shoes|circus|paint|pie|costume|costumes|nose|whoopie
-* likes=jokes|joke|prank|pranks|trick|tricks|fun|laughter|laugh|laughing|audience|performance|performances|music|color|colors|party|parties|loud
+* likes=clown|clowns|jokes|joke|prank|pranks|trick|tricks|fun|laughter|laugh|laughing|performance|performances|music|color|colors|party|parties|loud
 * dislikes=serious|quiet|read|reading|study|studying
 * hates=book|books|library|libraries
 
@@ -62,9 +66,9 @@
 * bodyStartCellNo=25
 * bodyCellCount=4
 
-# Mogger
+# Pretty Boy
 
-* title=Mogger
+* title=Pretty Boy
 * description=Devoted to looksmaxing. Steroids, weird diets, and hammers to the face - whatever it takes!
 * bodyStartCellNo=29
 * bodyCellCount=4
@@ -76,9 +80,9 @@
 * bodyStartCellNo=33
 * bodyCellCount=4
 
-# Hodler
+# Crypto Bro
 
-* title=Hodler
+* title=Crypto Bro
 * description=All about the crypto!
 * bodyStartCellNo=37
 * bodyCellCount=4

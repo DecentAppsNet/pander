@@ -8,7 +8,7 @@ The sections that follow are names of levels. Each level can contain different c
 
 * Librarian=8
 * Clown=1
-* Hodler=1
+* Crypto Bro=1
 * cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Middling Crowd
@@ -20,9 +20,9 @@ The sections that follow are names of levels. Each level can contain different c
 * Plumber=4
 * Barber=5
 * Ice Skater=3
-* Mogger=4
+* Pretty Boy=4
 * Artist=3
-* Hodler=2
+* Crypto Bro=2
 * cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Theater
@@ -34,9 +34,9 @@ The sections that follow are names of levels. Each level can contain different c
 * Plumber=20
 * Barber=10
 * Ice Skater=7
-* Mogger=8
+* Pretty Boy=8
 * Artist=6
-* Hodler=5
+* Crypto Bro=5
 * cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
 
 # Stadium Rally
@@ -48,7 +48,7 @@ The sections that follow are names of levels. Each level can contain different c
 * Plumber=40
 * Barber=50
 * Ice Skater=30
-* Mogger=40
+* Pretty Boy=40
 * Artist=30
-* Hodler=20
+* Crypto Bro=20
 * cards=Simple Greeting|Town Pride|Early Days|Just Like Them|Scapegoat|Gonna Fix It|Time to Rhyme|Final Call
