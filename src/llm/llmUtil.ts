@@ -17,6 +17,7 @@ import LLMMessages from "./types/LLMMessages";
 import StatusUpdateCallback from "./types/StatusUpdateCallback";
 import { webLlmConnect, webLlmGenerate } from "./webLlmUtil";
 import { mediapipeConnect, mediapipeGenerate } from "./mediapipeUtil";
+import { gemma4Connect, gemma4Generate } from "./gemma4Util";
 import { noneLlmConnect, noneLlmGenerate } from "./noneLlmUtil";
 
 const UNSPECIFIED_MODEL_ID = 'UNSPECIFIED';
@@ -72,7 +73,12 @@ export async function connect(modelId: string, onStatusUpdate: StatusUpdateCallb
     const selectedModel = models.find((m: any) => m.id === modelId);
     const inferenceFamily = selectedModel?.inferenceFamily ?? 'webllm';
 
-    if (inferenceFamily === 'mediapipe') {
+    if (inferenceFamily === 'gemma4') {
+      if (!await gemma4Connect(theConnection.modelId, theConnection, onStatusUpdate)) {
+        updateModelDeviceLoadHistory(theConnection.modelId, false);
+        _clearConnectionAndThrow('Failed to connect to Gemma 4.');
+      }
+    } else if (inferenceFamily === 'mediapipe') {
       if (!await mediapipeConnect(theConnection.modelId, theConnection, onStatusUpdate)) {
         updateModelDeviceLoadHistory(theConnection.modelId, false);
         _clearConnectionAndThrow('Failed to connect to Mediapipe.');
@@ -102,6 +108,7 @@ export async function generate(messages: LLMMessages, onStatusUpdate?: StatusUpd
   let requestTime = Date.now();
   switch (theConnection.connectionType) {
     case LLMConnectionType.WEBLLM: message = await webLlmGenerate(theConnection, messages, _onPartialResponse); break;
+    case LLMConnectionType.GEMMA4: message = await gemma4Generate(theConnection, messages, _onPartialResponse); break;
     case LLMConnectionType.MEDIAPIPE: message = await mediapipeGenerate(theConnection, messages, _onPartialResponse); break;
     case LLMConnectionType.NONE: message = await noneLlmGenerate(messages, _onPartialResponse); break;
     default: throw Error('Unexpected');

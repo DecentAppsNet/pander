@@ -12,6 +12,16 @@
       "id": "Gemma 3n E4B",
       "appBehaviorSummary": "Gemma 3n E4B (4B params) - Most capable LiteRT-LM model",
       "inferenceFamily": "mediapipe"
+    },
+    {
+      "id": "Gemma 4 E2B",
+      "appBehaviorSummary": "Gemma 4 E2B (2B params) - Smallest Gemma 4 model",
+      "inferenceFamily": "gemma4"
+    },
+    {
+      "id": "Gemma 4 E4B",
+      "appBehaviorSummary": "Gemma 4 E4B (4B params) - Larger Gemma 4 model",
+      "inferenceFamily": "gemma4"
     }
   ]
 }

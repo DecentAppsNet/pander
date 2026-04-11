@@ -27,6 +27,17 @@ export async function initApp() {
     configurable: true
   });
 
+  Object.defineProperty(Object.prototype, 'Gemma 4 E2B', {
+    value: { modelId: 'Gemma 4 E2B', vramRequiredMb: 8192 },
+    enumerable: false, // CRITICAL: Must be false to prevent Transformers.js pipeline initialization crash!
+    configurable: true
+  });
+
+  Object.defineProperty(Object.prototype, 'Gemma 4 E4B', {
+    value: { modelId: 'Gemma 4 E4B', vramRequiredMb: 8192 },
+    enumerable: false, // CRITICAL: Must be false to prevent Transformers.js pipeline initialization crash!
+    configurable: true
+  });
 
   await initAppMetaData(); // Useful to have app metadata ready before the app starts because DecentBar needs it.
 }
